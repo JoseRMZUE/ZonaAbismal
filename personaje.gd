@@ -1,8 +1,9 @@
 extends CharacterBody3D
 
+
 enum Estado { QUIETO, CAMINAR, AIRE }
 const RUIDO = [0.0, 2.0, 0.0]   
-
+@export var camara: Camera3D
 @export var speed = 4.5
 @export var gravedad = 30.0
 @export var altura_salto = 3.3
