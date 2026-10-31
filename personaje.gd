@@ -6,7 +6,7 @@ const RUIDO = [0.0, 2.0, 0.0]
 @export var speed = 4.5
 @export var gravedad = 30.0
 @export var altura_salto = 3.3
-@export var tiempo_arranque = 0.2
+@export var tiempo_arranque = 0.15
 @onready var anim = $Modelo/AnimationPlayer
 
 # Enchufes: otros scripts (las acciones del juego) cambian estas tres variables.
