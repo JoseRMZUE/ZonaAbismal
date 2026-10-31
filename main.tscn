@@ -112,6 +112,7 @@ script = ExtResource("3_1bvp3")
 
 [node name="Apuntar" type="Node" parent="Personaje" unique_id=182316824]
 script = ExtResource("5_7mycd")
+alcance = 2.5
 
 [node name="Enemigo" parent="." unique_id=423409652 node_paths=PackedStringArray("objetivo") instance=ExtResource("3_h2yge")]
 objetivo = NodePath("../Personaje")
