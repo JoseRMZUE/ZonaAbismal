@@ -9,6 +9,7 @@ enum Estado { LISTA, ACTIVA, RECARGA }
 
 var estado = Estado.LISTA
 var tiempo = 0.0
+var fervor = 0
 
 
 func _physics_process(delta):
@@ -29,9 +30,23 @@ func empezar():
 	estado = Estado.ACTIVA
 	tiempo = duracion
 	print("empieza: ", tecla)
+	
+	# enchufes: le decimos al Personaje qué hacer mientras el parry está activo
+	pj.multiplicador = 0
+	pj.empuje = Vector3.ZERO
+	pj.accion = "interact-right"
 
+	# la regla propia de Zona Abismal: el fervor
+	fervor += 6
+	if fervor > 100:
+		fervor = 100
+	print("fervor: ", fervor, "%")
+	if fervor >= 100:
+		print("habilidad lista")
 
 func terminar():
 	estado = Estado.RECARGA
 	tiempo = recarga
 	print("termina: ", tecla)
+	pj.multiplicador = 1.0
+	pj.accion = ""
