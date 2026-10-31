@@ -91,6 +91,8 @@ size = 7.0
 script = ExtResource("1_lquwl")
 objetivo = NodePath("../Personaje")
 distancia = Vector3(0, 2, 12)
+limite_min = Vector2(-8, -10)
+limite_max = Vector2(8, 10)
 
 [node name="Personaje" type="CharacterBody3D" parent="." unique_id=897854135 node_paths=PackedStringArray("camara")]
 axis_lock_linear_z = true
