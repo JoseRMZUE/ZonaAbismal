@@ -87,7 +87,7 @@ shape = SubResource("PlatForma")
 [node name="Camera3D" type="Camera3D" parent="." unique_id=2038079311 node_paths=PackedStringArray("objetivo")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 12)
 projection = 1
-size = 10.0
+size = 7.0
 script = ExtResource("1_lquwl")
 objetivo = NodePath("../Personaje")
 distancia = Vector3(0, 2, 12)
