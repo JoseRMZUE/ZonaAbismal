@@ -1,11 +1,12 @@
 78098b89c88a74ebe8c20117b8754620
-::res://::1793477445
+::res://::1793480484
+apuntar.gd::GDScript::4424757191343197070::1793478998::0::1::::<>Node<><>0<>0<><>::
 camera_sigue.gd::GDScript::2488930076445581813::1793473492::0::1::::<>Camera3D<><>0<>0<><>::
-enemigo.gd::GDScript::1760275571652046190::1793466958::0::1::::<>CharacterBody3D<><>0<>0<><>::
+enemigo.gd::GDScript::1760275571652046190::1793480407::0::1::::<>CharacterBody3D<><>0<>0<><>::
 enemigo.tscn::PackedScene::2187903906799286187::1793466958::0::1::::<><><>0<>0<><>::uid://0cxqmukty20a::::res://enemigo.gd<>uid://dtcyho4e2mmyw::::res://personaje/character-female-e.glb
 icon.svg::CompressedTexture2D::9031566727662553594::1793407844::1793467358::1::::<><><>0<>0<>d9f996d1dbe645fc33bdc0357d74b025<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
 LEEME.txt::TextFile::-1::1793407844::0::1::::<><><>0<>0<><>::
-main.tscn::PackedScene::7076852492692155270::1793473492::0::1::::<><><>0<>0<><>::uid://bbpwkx23dq8d2::::res://camera_sigue.gd<>uid://bj0372xnq02wk::::res://personaje.gd<>uid://biu6tppn8ml1q::::res://personaje/character-male-a.glb<>uid://s3lbbb62hkke::::res://parry.gd<>uid://6f3ptc8ip8ap::::res://enemigo.tscn
+main.tscn::PackedScene::7076852492692155270::1793480407::0::1::::<><><>0<>0<><>::uid://bbpwkx23dq8d2::::res://camera_sigue.gd<>uid://bj0372xnq02wk::::res://personaje.gd<>uid://biu6tppn8ml1q::::res://personaje/character-male-a.glb<>uid://s3lbbb62hkke::::res://parry.gd<>uid://6f3ptc8ip8ap::::res://enemigo.tscn<>uid://b4bnds1lpjk3w::::res://apuntar.gd
 parry.gd::GDScript::1321871490825613448::1793468155::0::1::::<>Node<><>0<>0<><>::
 personaje.gd::GDScript::3071488395763316490::1793473492::0::1::::<>CharacterBody3D<><>0<>0<><>::
 ::res://personaje/::1793467359

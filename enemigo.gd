@@ -9,6 +9,7 @@ enum Estado { PATRULLA, PERSEGUIR }
 @export var radio_ver = 3.0
 @export var radio_perder = 5.0
 @export var gravedad = 30.0
+@export var vida = 60
 
 @export var puntos: Array[Vector3] = [
 	Vector3(-5, 0, 0),
@@ -69,3 +70,10 @@ func ir_a(p):
 	rotation.y = -PI / 2 * sign(dir.x)
 
 	anim.play("walk")
+	
+func recibir_golpe(danio):
+	vida -= danio
+	print(name, ": vida ", vida)
+	if vida <= 0:
+		print(name, " destruida")
+		queue_free()
