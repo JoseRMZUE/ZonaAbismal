@@ -1,12 +1,37 @@
 extends Node
 
+enum Estado { LISTA, ACTIVA, RECARGA }
+
 @export var tecla = "parry"
+@export var duracion = 0.3
+@export var recarga = 1.2
 @onready var pj = get_parent()
 
-var usos = 0
+var estado = Estado.LISTA
+var tiempo = 0.0
 
 
-func _physics_process(_delta):
-	if Input.is_action_just_pressed(tecla):
-		usos += 1
-		print("empieza: ", tecla, " · uso número ", usos)
+func _physics_process(delta):
+	tiempo -= delta
+	match estado:
+		Estado.LISTA:
+			if Input.is_action_just_pressed(tecla):
+				empezar()
+		Estado.ACTIVA:
+			if tiempo <= 0.001:
+				terminar()
+		Estado.RECARGA:
+			if tiempo <= 0.001:
+				estado = Estado.LISTA
+
+
+func empezar():
+	estado = Estado.ACTIVA
+	tiempo = duracion
+	print("empieza: ", tecla)
+
+
+func terminar():
+	estado = Estado.RECARGA
+	tiempo = recarga
+	print("termina: ", tecla)
