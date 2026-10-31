@@ -3,8 +3,8 @@ extends Node
 enum Estado { LISTA, ACTIVA, RECARGA }
 
 @export var tecla = "parry"
-@export var duracion = 0.3
-@export var recarga = 1.2
+@export var duracion = 0.2
+@export var recarga = 0.5
 @onready var pj = get_parent()
 
 var estado = Estado.LISTA
