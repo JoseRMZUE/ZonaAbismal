@@ -1,0 +1,72 @@
+[gd_scene format=3 uid="uid://b2fqdj40ucfn0"]
+
+[ext_resource type="Script" uid="uid://bj0372xnq02wk" path="res://personaje.gd" id="1_rsxdq"]
+[ext_resource type="PackedScene" uid="uid://biu6tppn8ml1q" path="res://personaje/character-male-a.glb" id="2_57wwi"]
+[ext_resource type="Script" uid="uid://bbpwkx23dq8d2" path="res://camera_sigue.gd" id="2_l7qun"]
+[ext_resource type="Script" uid="uid://bxa6xd257qjgl" path="res://sistema_sol.gd" id="3_e2n66"]
+[ext_resource type="Script" uid="uid://nn8eqb0lgaie" path="res://ciclo_dia.gd" id="3_fntjl"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_j76ht"]
+radius = 0.35
+height = 1.75
+
+[sub_resource type="BoxMesh" id="BoxMesh_57wwi"]
+size = Vector3(30, 1, 4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_o0wp1"]
+size = Vector3(30, 1, 4)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_l7qun"]
+
+[sub_resource type="Sky" id="Sky_l7qun"]
+sky_material = SubResource("ProceduralSkyMaterial_l7qun")
+
+[sub_resource type="Environment" id="Environment_xrivr"]
+background_mode = 2
+sky = SubResource("Sky_l7qun")
+ambient_light_source = 3
+tonemap_mode = 2
+
+[node name="ZonaA" type="Node3D" unique_id=1688926019]
+
+[node name="Personaje" type="CharacterBody3D" parent="." unique_id=2139095220 node_paths=PackedStringArray("camara")]
+axis_lock_linear_z = true
+script = ExtResource("1_rsxdq")
+camara = NodePath("../Camera3D")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Personaje" unique_id=315757851]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
+shape = SubResource("CapsuleShape3D_j76ht")
+
+[node name="Modelo" parent="Personaje" unique_id=932354640 instance=ExtResource("2_57wwi")]
+transform = Transform3D(-2.6, 0, 0, 0, 2.6, 0, 0, 0, -2.6, 0, 0, 0)
+
+[node name="Suelo" type="StaticBody3D" parent="." unique_id=1089649836]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Suelo" unique_id=479399082]
+mesh = SubResource("BoxMesh_57wwi")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Suelo" unique_id=1006314142]
+shape = SubResource("BoxShape3D_o0wp1")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1966543472 node_paths=PackedStringArray("objetivo")]
+projection = 1
+size = 7.0
+script = ExtResource("2_l7qun")
+objetivo = NodePath("../Personaje")
+distancia = Vector3(0, 2, 12)
+
+[node name="Sol" type="DirectionalLight3D" parent="." unique_id=481075485]
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=200209375]
+environment = SubResource("Environment_xrivr")
+
+[node name="SistemaSol" type="Node" parent="." unique_id=1995674048 node_paths=PackedStringArray("sol", "entorno")]
+script = ExtResource("3_e2n66")
+sol = NodePath("../Sol")
+entorno = NodePath("../WorldEnvironment")
+
+[node name="CicloDia" type="Node" parent="SistemaSol" unique_id=2084626456]
+script = ExtResource("3_fntjl")
