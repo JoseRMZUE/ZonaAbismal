@@ -1,4 +1,3 @@
 res://zona_a.tscn
-res://ciclo_dia.gd
-res://sistema_sol.gd
-res://fotometro.gd
+res://luz_jugador.gd
+res://main.tscn
