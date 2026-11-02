@@ -1,7 +1,7 @@
-MeshInstance3D
 OmniLight3D
-Node
 WorldEnvironment
+MeshInstance3D
+Node
 DirectionalLight3D
 Camera3D
 CollisionShape3D

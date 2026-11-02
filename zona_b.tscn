@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://b73unyndxyyct"]
+
+[ext_resource type="Script" uid="uid://bj0372xnq02wk" path="res://personaje.gd" id="1_7ursy"]
+[ext_resource type="PackedScene" uid="uid://biu6tppn8ml1q" path="res://personaje/character-male-a.glb" id="2_dbxaw"]
+[ext_resource type="Script" uid="uid://bbpwkx23dq8d2" path="res://camera_sigue.gd" id="3_dbxaw"]
+[ext_resource type="Script" uid="uid://drfigjaf52f0m" path="res://luz_parpadeante.gd" id="4_kbk0x"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_kbk0x"]
+size = Vector3(30, 1, 4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_k8i2i"]
+size = Vector3(30, 1, 4)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xgqsf"]
+radius = 0.35
+height = 1.75
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_b1lj4"]
+
+[sub_resource type="Sky" id="Sky_dbxaw"]
+sky_material = SubResource("ProceduralSkyMaterial_b1lj4")
+
+[sub_resource type="Environment" id="Environment_xrivr"]
+background_mode = 2
+sky = SubResource("Sky_dbxaw")
+tonemap_mode = 2
+
+[node name="ZonaB" type="Node3D" unique_id=1314058486]
+
+[node name="Suelo" type="StaticBody3D" parent="." unique_id=67423656]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Suelo" unique_id=1315291550]
+mesh = SubResource("BoxMesh_kbk0x")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Suelo" unique_id=970866750]
+shape = SubResource("BoxShape3D_k8i2i")
+
+[node name="Personaje" type="CharacterBody3D" parent="." unique_id=1230631350 node_paths=PackedStringArray("camara")]
+axis_lock_linear_z = true
+script = ExtResource("1_7ursy")
+camara = NodePath("../Camera3D")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Personaje" unique_id=97246328]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
+shape = SubResource("CapsuleShape3D_xgqsf")
+
+[node name="Modelo" parent="Personaje" unique_id=1436692064 instance=ExtResource("2_dbxaw")]
+transform = Transform3D(-2.6, 0, 0, 0, 2.6, 0, 0, 0, -2.6, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=2020325639 node_paths=PackedStringArray("objetivo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 12)
+projection = 1
+size = 7.0
+script = ExtResource("3_dbxaw")
+objetivo = NodePath("../Personaje")
+distancia = Vector3(0, 2, 12)
+limite_min = Vector2(-8, -10)
+limite_max = Vector2(8, 10)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1083385707]
+environment = SubResource("Environment_xrivr")
+
+[node name="LuzConVida" type="OmniLight3D" parent="." unique_id=1953075495]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.5, 0)
+light_color = Color(0.35686275, 0.29411766, 0.5411765, 1)
+shadow_enabled = true
+omni_attenuation = 2.0
+script = ExtResource("4_kbk0x")
