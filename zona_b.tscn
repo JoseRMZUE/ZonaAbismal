@@ -85,6 +85,11 @@ light_energy = 0.0
 omni_range = 4.0
 omni_attenuation = 2.0
 
-[node name="SistemaEventos" type="Node" parent="." unique_id=1127849204 node_paths=PackedStringArray("luz_evento")]
+[node name="SistemaEventos" type="Node" parent="." unique_id=1127849204 node_paths=PackedStringArray("luz_evento", "luz_variable")]
 script = ExtResource("6_xgqsf")
 luz_evento = NodePath("../LuzEvento")
+luz_variable = NodePath("../LuzIra")
+
+[node name="LuzIra" type="OmniLight3D" parent="." unique_id=1596017611]
+omni_range = 4.0
+omni_attenuation = 2.0
