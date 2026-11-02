@@ -43,6 +43,11 @@ height = 1.75
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_u5bk5"]
 
+[sub_resource type="SphereMesh" id="SphereMesh_u5bk5"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kddjp"]
+roughness = 0.2
+
 [node name="Main" type="Node3D" unique_id=1437962169]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=819819277]
@@ -128,6 +133,9 @@ script = ExtResource("6_272bh")
 
 [node name="LuzJugador" type="OmniLight3D" parent="Personaje" unique_id=535605350]
 light_color = Color(0.74339026, 0.6549346, 1.92523e-06, 1)
+shadow_enabled = true
+shadow_bias = 3.0
+shadow_normal_bias = 6.0
 omni_attenuation = 2.0
 script = ExtResource("7_4c57u")
 
@@ -159,3 +167,8 @@ entorno = NodePath("../WorldEnvironment")
 
 [node name="CicloDia" type="Node" parent="SistemaSol" unique_id=438304191]
 script = ExtResource("10_dg77c")
+
+[node name="EsferaBrillo" type="MeshInstance3D" parent="." unique_id=268766588]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0)
+mesh = SubResource("SphereMesh_u5bk5")
+surface_material_override/0 = SubResource("StandardMaterial3D_kddjp")
