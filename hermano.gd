@@ -1,10 +1,14 @@
 extends CharacterBody3D
 
-enum Estado { PATRULLAR, ESPERAR, PERSEGUIR }
+enum Estado { PATRULLAR, ESPERAR, PERSEGUIR, ATACAR, BUSCAR }
 
 @export var rapidez = 2.0
 @export var espera = 1.0
 @export var rango_vision = 6.0
+@export var rango_ataque = 1.2
+@export var rango_perder = 8.0
+@export var tiempo_busqueda = 2.0
+@export var vida = 4
 # Desplazamientos desde donde se colocó el NPC, no posiciones absolutas.
 @export var ruta: Array[Vector3] = [Vector3.ZERO, Vector3(4, 0, 0)]
 
@@ -13,6 +17,8 @@ var puntos: Array[Vector3] = []
 var indice = 0
 var reloj = 0.0
 var jugador = null
+var ultimo_visto = Vector3.ZERO
+var busca = 0.0
 @onready var anim = $Modelo/AnimationPlayer
 @onready var vision = $Vision
 
@@ -26,9 +32,12 @@ func _ready():
 func _physics_process(delta):
 	velocity += get_gravity() * delta
 	reloj = maxf(reloj - delta, 0.0)
+	busca = maxf(busca - delta, 0.0)
 	# 1. MEDIR
 	var d = distancia_a(jugador.global_position)
 	var ve = lo_ve()
+	if ve:
+		ultimo_visto = jugador.global_position
 	# 2. DECIDIR
 	var nuevo = decidir(d, ve)
 	if nuevo != estado:
@@ -43,22 +52,43 @@ func _physics_process(delta):
 			frenar()
 		Estado.PERSEGUIR:
 			ir_a(jugador.global_position)
+		Estado.ATACAR:
+			frenar()
+			anim.play("attack-melee-right")
+		Estado.BUSCAR:
+			if distancia_a(ultimo_visto) > 0.1:
+				ir_a(ultimo_visto)
+			else:
+				frenar()
 	move_and_slide()
 
 
+# El orden ES la regla: el primer if que se cumple gana.
 func decidir(d, ve):
-	if d <= rango_vision and ve:
+	var alerta = estado == Estado.PERSEGUIR or estado == Estado.ATACAR
+	# Ya alerta, necesita más distancia para soltarlo: histéresis.
+	var limite = rango_perder if alerta else rango_vision
+	if ve and d <= rango_ataque:
+		return Estado.ATACAR
+	if ve and d <= limite:
 		return Estado.PERSEGUIR
+	if alerta:
+		busca = tiempo_busqueda
+		return Estado.BUSCAR
+	if busca > 0.001:
+		return Estado.BUSCAR
 	if reloj > 0.001:
 		return Estado.ESPERAR
 	return Estado.PATRULLAR
 
 
 func lo_ve():
+	# Se apunta al pecho: el origen del jugador está en los pies.
 	var pecho = jugador.global_position + Vector3(0, 0.9, 0)
 	vision.target_position = vision.to_local(pecho)
 	vision.force_raycast_update()
 	if vision.is_colliding():
+		# ¿Lo primero que tocó fue el jugador, o una pared?
 		return vision.get_collider() == jugador
 	return true
 
@@ -93,3 +123,14 @@ func frenar():
 func distancia_a(p):
 	var o = global_position
 	return Vector2(p.x - o.x, p.z - o.z).length()
+
+
+# Agregado por el equipo (no lo da el esqueleto del taller): Hermano
+# necesita vida y recibir_golpe para ser el enemigo real de Sala A,
+# copiando el mismo patrón que enemigo.gd (Taller 7).
+func recibir_golpe(danio):
+	vida -= danio
+	print(name, ": vida ", vida)
+	if vida <= 0:
+		print(name, " destruida")
+		queue_free()

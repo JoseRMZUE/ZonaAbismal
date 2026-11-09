@@ -141,11 +141,11 @@ shadow_normal_bias = 6.0
 omni_attenuation = 2.0
 script = ExtResource("7_4c57u")
 
-[node name="Enemigo" parent="." node_paths=PackedStringArray("objetivo") instance=ExtResource("3_h2yge")]
+[node name="Enemigo" parent="." unique_id=1633887769 node_paths=PackedStringArray("objetivo") instance=ExtResource("3_h2yge")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 0)
 objetivo = NodePath("../Personaje")
 
-[node name="Hermano" parent="." instance=ExtResource("11_hermano")]
+[node name="Hermano" parent="." unique_id=605523774 instance=ExtResource("11_hermano")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
 
 [node name="caja1" type="StaticBody3D" parent="." unique_id=1891220961 groups=["interactivos"]]
