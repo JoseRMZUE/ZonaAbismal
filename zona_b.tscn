@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://drfigjaf52f0m" path="res://luz_parpadeante.gd" id="4_kbk0x"]
 [ext_resource type="Script" uid="uid://cwnnoif2h8cls" path="res://disparador.gd" id="5_k8i2i"]
 [ext_resource type="Script" uid="uid://c5wnqdft7ue8r" path="res://sistema_eventos.gd" id="6_xgqsf"]
+[ext_resource type="PackedScene" uid="uid://cpw8utqxde2rj" path="res://verdugo.tscn" id="7_ltrp7"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_kbk0x"]
 size = Vector3(30, 1, 4)
@@ -40,7 +41,7 @@ mesh = SubResource("BoxMesh_kbk0x")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Suelo" unique_id=970866750]
 shape = SubResource("BoxShape3D_k8i2i")
 
-[node name="Personaje" type="CharacterBody3D" parent="." unique_id=1230631350 node_paths=PackedStringArray("camara")]
+[node name="Personaje" type="CharacterBody3D" parent="." unique_id=1230631350 node_paths=PackedStringArray("camara") groups=["jugador"]]
 axis_lock_linear_z = true
 script = ExtResource("1_7ursy")
 camara = NodePath("../Camera3D")
@@ -93,3 +94,6 @@ luz_variable = NodePath("../LuzIra")
 [node name="LuzIra" type="OmniLight3D" parent="." unique_id=1596017611]
 omni_range = 4.0
 omni_attenuation = 2.0
+
+[node name="Verdugo" parent="." unique_id=2053470147 instance=ExtResource("7_ltrp7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
