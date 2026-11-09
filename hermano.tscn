@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://hermano.gd" id="1_hermano"]
+[ext_resource type="PackedScene" uid="uid://52giffn4ww16" path="res://personaje/character-male-d.glb" id="2_modelo"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hermano"]
+radius = 0.35
+height = 1.75
+
+[node name="Hermano" type="CharacterBody3D"]
+axis_lock_linear_z = true
+script = ExtResource("1_hermano")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
+shape = SubResource("CapsuleShape3D_hermano")
+
+[node name="Modelo" parent="." instance=ExtResource("2_modelo")]
+transform = Transform3D(-2.6, 0, 0, 0, 2.6, 0, 0, 0, -2.6, 0, 0, 0)
