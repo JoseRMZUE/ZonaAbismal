@@ -8,9 +8,14 @@
 [ext_resource type="Script" uid="uid://b4bnds1lpjk3w" path="res://apuntar.gd" id="5_7mycd"]
 [ext_resource type="Script" uid="uid://dt1qstdvdk8dt" path="res://interactuar.gd" id="6_272bh"]
 [ext_resource type="Script" uid="uid://b5mu8k1s52ry7" path="res://luz_jugador.gd" id="7_4c57u"]
+[ext_resource type="PackedScene" uid="uid://c0orafvmm0ui1" path="res://personaje/mixamo/personaje_mixamo.tscn" id="8_2cqfq"]
 [ext_resource type="Script" uid="uid://bxa6xd257qjgl" path="res://sistema_sol.gd" id="9_efxa6"]
 [ext_resource type="Script" uid="uid://nn8eqb0lgaie" path="res://ciclo_dia.gd" id="10_dg77c"]
 [ext_resource type="PackedScene" path="res://hermano.tscn" id="11_hermano"]
+[ext_resource type="PackedScene" uid="uid://cpw8utqxde2rj" path="res://verdugo.tscn" id="12_dg77c"]
+[ext_resource type="Script" uid="uid://cwnnoif2h8cls" path="res://disparador.gd" id="13_ycdy4"]
+[ext_resource type="Script" uid="uid://c5wnqdft7ue8r" path="res://sistema_eventos.gd" id="14_w48qg"]
+[ext_resource type="Script" uid="uid://drfigjaf52f0m" path="res://luz_parpadeante.gd" id="15_vivmo"]
 
 [sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
 
@@ -48,6 +53,8 @@ height = 1.75
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kddjp"]
 roughness = 0.2
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_xrivr"]
 
 [node name="Main" type="Node3D" unique_id=1437962169]
 
@@ -104,6 +111,7 @@ shape = SubResource("PlatForma")
 [node name="Camera3D" type="Camera3D" parent="." unique_id=2038079311 node_paths=PackedStringArray("objetivo")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 12)
 projection = 1
+current = true
 size = 7.0
 script = ExtResource("1_lquwl")
 objetivo = NodePath("../Personaje")
@@ -120,8 +128,9 @@ camara = NodePath("../Camera3D")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
 shape = SubResource("Capsula")
 
-[node name="Modelo" parent="Personaje" unique_id=1637296909 instance=ExtResource("2_modelo")]
+[node name="ModeloViejo" parent="Personaje" unique_id=1637296909 instance=ExtResource("2_modelo")]
 transform = Transform3D(-2.6, 0, 0, 0, 2.6, 0, 0, 0, -2.6, 0, 0, 0)
+visible = false
 
 [node name="Parry" type="Node" parent="Personaje" unique_id=1326988459]
 script = ExtResource("3_1bvp3")
@@ -141,15 +150,11 @@ shadow_normal_bias = 6.0
 omni_attenuation = 2.0
 script = ExtResource("7_4c57u")
 
-[node name="Enemigo" parent="." unique_id=1633887769 node_paths=PackedStringArray("objetivo") instance=ExtResource("3_h2yge")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 0)
-objetivo = NodePath("../Personaje")
-
-[node name="Hermano" parent="." unique_id=605523774 instance=ExtResource("11_hermano")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
+[node name="Modelo" parent="Personaje" unique_id=793983153 instance=ExtResource("8_2cqfq")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
 
 [node name="caja1" type="StaticBody3D" parent="." unique_id=1891220961 groups=["interactivos"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.5, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="caja1" unique_id=1266793030]
 mesh = SubResource("BoxMesh_u5bk5")
@@ -178,3 +183,53 @@ script = ExtResource("10_dg77c")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0)
 mesh = SubResource("SphereMesh_u5bk5")
 surface_material_override/0 = SubResource("StandardMaterial3D_kddjp")
+
+[node name="SalaA" type="Node3D" parent="." unique_id=1697326703]
+
+[node name="Hermano" parent="SalaA" unique_id=605523774 instance=ExtResource("11_hermano")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
+
+[node name="SalaB" type="Node3D" parent="." unique_id=1918942932]
+
+[node name="Verdugo" parent="SalaB" unique_id=2053470147 instance=ExtResource("12_dg77c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
+
+[node name="Disparador" type="Area3D" parent="SalaB" unique_id=873837475]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
+collision_mask = 8
+script = ExtResource("13_ycdy4")
+que_representa = "Verdugo telegrafía el golpe"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SalaB/Disparador" unique_id=1316683255]
+shape = SubResource("BoxShape3D_xrivr")
+
+[node name="LuzEvento" type="OmniLight3D" parent="SalaB" unique_id=2077799399]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1.5, 0)
+light_color = Color(0.8392157, 0.23137255, 0.23137255, 1)
+light_energy = 0.0
+omni_range = 4.0
+omni_attenuation = 2.0
+
+[node name="LuzIra" type="OmniLight3D" parent="SalaB" unique_id=1756329089]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2, 0)
+omni_range = 4.0
+omni_attenuation = 2.0
+
+[node name="SistemaEventos" type="Node" parent="SalaB" unique_id=443779013 node_paths=PackedStringArray("luz_evento", "luz_variable")]
+script = ExtResource("14_w48qg")
+luz_evento = NodePath("../LuzEvento")
+luz_variable = NodePath("../LuzIra")
+
+[node name="LuzAmbiental" type="OmniLight3D" parent="SalaB" unique_id=1868660094]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1.5, 0)
+light_color = Color(0.35686275, 0.29411766, 0.5411765, 1)
+shadow_enabled = true
+omni_attenuation = 2.0
+script = ExtResource("15_vivmo")
+
+[node name="Reservado" type="Node3D" parent="." unique_id=1698877738]
+visible = false
+
+[node name="Enemigo" parent="Reservado" unique_id=1633887769 node_paths=PackedStringArray("objetivo") instance=ExtResource("3_h2yge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 0)
+objetivo = NodePath("../../Personaje")

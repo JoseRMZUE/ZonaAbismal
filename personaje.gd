@@ -8,7 +8,7 @@ const RUIDO = [0.0, 2.0, 0.0]
 @export var gravedad = 30.0
 @export var altura_salto = 3.3
 @export var tiempo_arranque = 0.15
-@onready var anim = $Modelo/AnimationPlayer
+@onready var anim = $Modelo/idle/AnimationPlayer
 
 # Enchufes: otros scripts (las acciones del juego) cambian estas tres variables.
 var multiplicador = 1.0     # 1 = rapidez normal, 0.5 = la mitad, 0 = quieto
@@ -32,13 +32,13 @@ func _physics_process(delta):
 	if lado != 0:
 		rotation.y = -PI / 2 * sign(lado)   # mira hacia +X o hacia -X
 	if accion != "":
-		anim.play(accion)
+		anim.play("personaje/" + accion)
 	elif not is_on_floor():
-		anim.play("jump" if velocity.y > 0 else "fall")
+		anim.play("personaje/jump" if velocity.y > 0 else "personaje/fall")
 	elif absf(avance) > 0.1:
-		anim.play("walk")
+		anim.play("personaje/walk")
 	else:
-		anim.play("idle")
+		anim.play("personaje/idle")
 
 	move_and_slide()
 	var antes = estado
@@ -61,15 +61,15 @@ func elegir_estado():
 
 func animar():
 	if accion != "":
-		anim.play(accion)
+		anim.play("personaje/" + accion)
 		return
 	match estado:
 		Estado.QUIETO:
-			anim.play("idle")
+			anim.play("personaje/idle")
 		Estado.CAMINAR:
-			anim.play("walk")
+			anim.play("personaje/walk")
 		Estado.AIRE:
-			anim.play("jump" if velocity.y > 0 else "fall")
+			anim.play("personaje/jump" if velocity.y > 0 else "personaje/fall")
 
 
 # ---------------------------------------------------------------------------
