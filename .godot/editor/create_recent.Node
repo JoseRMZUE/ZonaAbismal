@@ -1,11 +1,11 @@
+CollisionShape3D
+MeshInstance3D
+StaticBody3D
 OmniLight3D
 Node
-CollisionShape3D
 Area3D
 WorldEnvironment
-MeshInstance3D
 DirectionalLight3D
 Camera3D
 CharacterBody3D
-StaticBody3D
 Node3D

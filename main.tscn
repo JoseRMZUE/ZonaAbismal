@@ -6,20 +6,18 @@
 [ext_resource type="Script" uid="uid://s3lbbb62hkke" path="res://parry.gd" id="3_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://6f3ptc8ip8ap" path="res://enemigo.tscn" id="3_h2yge"]
 [ext_resource type="Script" uid="uid://b4bnds1lpjk3w" path="res://apuntar.gd" id="5_7mycd"]
-[ext_resource type="Script" uid="uid://dt1qstdvdk8dt" path="res://interactuar.gd" id="6_272bh"]
-[ext_resource type="Script" uid="uid://b5mu8k1s52ry7" path="res://luz_jugador.gd" id="7_4c57u"]
 [ext_resource type="Script" uid="uid://bxa6xd257qjgl" path="res://sistema_sol.gd" id="9_efxa6"]
 [ext_resource type="Script" uid="uid://nn8eqb0lgaie" path="res://ciclo_dia.gd" id="10_dg77c"]
 [ext_resource type="PackedScene" path="res://hermano.tscn" id="11_hermano"]
 
 [sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
 
-[sub_resource type="Sky" id="Cielo"]
+[sub_resource type="Sky" id="Sky_4c57u"]
 sky_material = SubResource("CieloMat")
 
 [sub_resource type="Environment" id="Entorno"]
 background_mode = 2
-sky = SubResource("Cielo")
+sky = SubResource("Sky_4c57u")
 
 [sub_resource type="BoxMesh" id="PisoMalla"]
 size = Vector3(30, 1, 4)
@@ -39,15 +37,6 @@ size = Vector3(3, 0.4, 4)
 [sub_resource type="CapsuleShape3D" id="Capsula"]
 radius = 0.35
 height = 1.75
-
-[sub_resource type="BoxMesh" id="BoxMesh_u5bk5"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_u5bk5"]
-
-[sub_resource type="SphereMesh" id="SphereMesh_u5bk5"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kddjp"]
-roughness = 0.2
 
 [node name="Main" type="Node3D" unique_id=1437962169]
 
@@ -130,41 +119,12 @@ script = ExtResource("3_1bvp3")
 script = ExtResource("5_7mycd")
 danio = 1
 
-[node name="Interactuar" type="Node3D" parent="Personaje" unique_id=1899865825]
-script = ExtResource("6_272bh")
-
-[node name="LuzJugador" type="OmniLight3D" parent="Personaje" unique_id=535605350]
-light_color = Color(0.74339026, 0.6549346, 1.92523e-06, 1)
-shadow_enabled = true
-shadow_bias = 3.0
-shadow_normal_bias = 6.0
-omni_attenuation = 2.0
-script = ExtResource("7_4c57u")
-
 [node name="Enemigo" parent="." unique_id=1633887769 node_paths=PackedStringArray("objetivo") instance=ExtResource("3_h2yge")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 0)
 objetivo = NodePath("../Personaje")
 
 [node name="Hermano" parent="." unique_id=605523774 instance=ExtResource("11_hermano")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
-
-[node name="caja1" type="StaticBody3D" parent="." unique_id=1891220961 groups=["interactivos"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0.5, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="caja1" unique_id=1266793030]
-mesh = SubResource("BoxMesh_u5bk5")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="caja1" unique_id=213620052]
-shape = SubResource("BoxShape3D_u5bk5")
-
-[node name="caja2" type="StaticBody3D" parent="." unique_id=613964518 groups=["interactivos"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.5, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="caja2" unique_id=1822604530]
-mesh = SubResource("BoxMesh_u5bk5")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="caja2" unique_id=584012779]
-shape = SubResource("BoxShape3D_u5bk5")
 
 [node name="SistemaSol" type="Node" parent="." unique_id=1482822263 node_paths=PackedStringArray("sol", "entorno")]
 script = ExtResource("9_efxa6")
@@ -173,8 +133,3 @@ entorno = NodePath("../WorldEnvironment")
 
 [node name="CicloDia" type="Node" parent="SistemaSol" unique_id=438304191]
 script = ExtResource("10_dg77c")
-
-[node name="EsferaBrillo" type="MeshInstance3D" parent="." unique_id=268766588]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0)
-mesh = SubResource("SphereMesh_u5bk5")
-surface_material_override/0 = SubResource("StandardMaterial3D_kddjp")

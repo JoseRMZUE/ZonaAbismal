@@ -1,0 +1,106 @@
+[gd_scene format=3 uid="uid://dykccpce7prpx"]
+
+[ext_resource type="Script" uid="uid://bj0372xnq02wk" path="res://personaje.gd" id="1_p0yna"]
+[ext_resource type="PackedScene" uid="uid://biu6tppn8ml1q" path="res://personaje/character-male-a.glb" id="2_a5nr1"]
+[ext_resource type="Script" uid="uid://dt1qstdvdk8dt" path="res://interactuar.gd" id="3_do5ul"]
+[ext_resource type="Script" uid="uid://b5mu8k1s52ry7" path="res://luz_jugador.gd" id="4_0jj1j"]
+[ext_resource type="Script" uid="uid://bbpwkx23dq8d2" path="res://camera_sigue.gd" id="5_a5nr1"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1s6bi"]
+
+[sub_resource type="Sky" id="Cielo"]
+sky_material = SubResource("ProceduralSkyMaterial_1s6bi")
+
+[sub_resource type="Environment" id="Environment_n4ev3"]
+background_mode = 2
+sky = SubResource("Cielo")
+
+[sub_resource type="BoxMesh" id="BoxMesh_8hnh8"]
+size = Vector3(30, 1, 4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_0hb1p"]
+size = Vector3(30, 1, 4)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_bh0h6"]
+radius = 0.35
+height = 1.75
+
+[sub_resource type="BoxMesh" id="BoxMesh_a5nr1"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_do5ul"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_0jj1j"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bh0h6"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_8ugd0"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_un8ru"]
+roughness = 0.2
+
+[node name="ZonaC" type="Node3D" unique_id=2090300962]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=513618450]
+environment = SubResource("Environment_n4ev3")
+
+[node name="Suelo" type="StaticBody3D" parent="." unique_id=945896794]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Suelo" unique_id=614532489]
+mesh = SubResource("BoxMesh_8hnh8")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Suelo" unique_id=1125265629]
+shape = SubResource("BoxShape3D_0hb1p")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1031098732 node_paths=PackedStringArray("objetivo")]
+projection = 1
+size = 7.0
+script = ExtResource("5_a5nr1")
+objetivo = NodePath("../Personaje")
+distancia = Vector3(0, 2, 12)
+
+[node name="Personaje" type="CharacterBody3D" parent="." unique_id=1686319297 node_paths=PackedStringArray("camara") groups=["jugador"]]
+axis_lock_linear_z = true
+script = ExtResource("1_p0yna")
+camara = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Personaje" unique_id=1807509086]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
+shape = SubResource("CapsuleShape3D_bh0h6")
+
+[node name="Modelo" parent="Personaje" unique_id=1210252382 instance=ExtResource("2_a5nr1")]
+transform = Transform3D(-2.6, 0, 0, 0, 2.6, 0, 0, 0, -2.6, 0, 0, 0)
+
+[node name="Interactuar" type="Node3D" parent="Personaje" unique_id=1090891864]
+script = ExtResource("3_do5ul")
+
+[node name="LuzJugador" type="OmniLight3D" parent="Personaje" unique_id=1821402655]
+light_color = Color(0.74339026, 0.6549346, 1.92523e-06, 1)
+shadow_enabled = true
+shadow_bias = 3.0
+shadow_normal_bias = 6.0
+omni_attenuation = 2.0
+script = ExtResource("4_0jj1j")
+
+[node name="caja1" type="StaticBody3D" parent="." unique_id=906855597 groups=["interactivos"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="caja1" unique_id=1234956870]
+mesh = SubResource("BoxMesh_a5nr1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="caja1" unique_id=2003232436]
+shape = SubResource("BoxShape3D_do5ul")
+
+[node name="caja2" type="StaticBody3D" parent="." unique_id=1145109083 groups=["interactivos"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="caja2" unique_id=389119589]
+mesh = SubResource("BoxMesh_0jj1j")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="caja2" unique_id=1035682937]
+shape = SubResource("BoxShape3D_bh0h6")
+
+[node name="EsferaBrillo" type="MeshInstance3D" parent="." unique_id=1194989967]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0)
+mesh = SubResource("SphereMesh_8ugd0")
+surface_material_override/0 = SubResource("StandardMaterial3D_un8ru")
