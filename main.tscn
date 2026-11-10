@@ -417,6 +417,8 @@ shape = SubResource("CheckpointForma")
 
 [node name="Partida" type="Node" parent="." unique_id=1815202420]
 script = ExtResource("16_partida")
+tiempo_limite = 1200.0
+metas = 1
 
 [node name="Reservado" type="Node3D" parent="." unique_id=1698877738]
 visible = false
