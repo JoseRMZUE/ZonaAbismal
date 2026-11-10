@@ -8,6 +8,12 @@ const RUIDO = [0.0, 2.0, 0.0]
 @export var gravedad = 30.0
 @export var altura_salto = 3.3
 @export var tiempo_arranque = 0.15
+# A cuántos m/s "camina" el clip de Mixamo (medido: 1.54 m en 1.1 s).
+# La animación se acelera o frena para que los pies acompañen la
+# rapidez real y no patinen.
+@export var paso_animacion = 1.4
+# Cuánto dura en pantalla la animación del ataque (el rayo es de Apuntar).
+@export var dura_ataque = 0.4
 @onready var anim = $Modelo/idle/AnimationPlayer
 
 # Enchufes: otros scripts (las acciones del juego) cambian estas tres variables.
@@ -16,7 +22,8 @@ var empuje = Vector3.ZERO   # velocidad extra en m/s (dash, retroceso)
 var accion = ""             # animación de la acción; "" = ninguna
 var avance = 0.0
 var estado = Estado.QUIETO
-var ruido = 0.0  
+var ruido = 0.0
+var reloj_ataque = 0.0
 
 func _physics_process(delta):
 	if not is_on_floor():
@@ -31,11 +38,23 @@ func _physics_process(delta):
 
 	if lado != 0:
 		rotation.y = -PI / 2 * sign(lado)   # mira hacia +X o hacia -X
+
+	# Animación del ataque: el golpe real (el rayo) lo hace Apuntar.
+	if Input.is_action_just_pressed("disparar") and accion == "":
+		accion = "attack-melee-right"
+		reloj_ataque = dura_ataque
+	if reloj_ataque > 0.0:
+		reloj_ataque -= delta
+		if reloj_ataque <= 0.0 and accion == "attack-melee-right":
+			accion = ""
+
+	anim.speed_scale = 1.0
 	if accion != "":
 		anim.play("personaje/" + accion)
 	elif not is_on_floor():
 		anim.play("personaje/jump" if velocity.y > 0 else "personaje/fall")
 	elif absf(avance) > 0.1:
+		anim.speed_scale = absf(avance) / paso_animacion
 		anim.play("personaje/walk")
 	else:
 		anim.play("personaje/idle")
@@ -60,6 +79,7 @@ func elegir_estado():
 
 
 func animar():
+	anim.speed_scale = 1.0
 	if accion != "":
 		anim.play("personaje/" + accion)
 		return
@@ -67,6 +87,7 @@ func animar():
 		Estado.QUIETO:
 			anim.play("personaje/idle")
 		Estado.CAMINAR:
+			anim.speed_scale = absf(avance) / paso_animacion
 			anim.play("personaje/walk")
 		Estado.AIRE:
 			anim.play("personaje/jump" if velocity.y > 0 else "personaje/fall")
