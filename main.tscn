@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://bbpwkx23dq8d2" path="res://camera_sigue.gd" id="1_lquwl"]
 [ext_resource type="Script" uid="uid://bj0372xnq02wk" path="res://personaje.gd" id="1_pj"]
-[ext_resource type="PackedScene" uid="uid://biu6tppn8ml1q" path="res://personaje/character-male-a.glb" id="2_modelo"]
 [ext_resource type="Script" uid="uid://s3lbbb62hkke" path="res://parry.gd" id="3_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://6f3ptc8ip8ap" path="res://enemigo.tscn" id="3_h2yge"]
 [ext_resource type="Script" uid="uid://b4bnds1lpjk3w" path="res://apuntar.gd" id="5_7mycd"]
@@ -16,6 +15,9 @@
 [ext_resource type="Script" uid="uid://cwnnoif2h8cls" path="res://disparador.gd" id="13_ycdy4"]
 [ext_resource type="Script" uid="uid://c5wnqdft7ue8r" path="res://sistema_eventos.gd" id="14_w48qg"]
 [ext_resource type="Script" uid="uid://drfigjaf52f0m" path="res://luz_parpadeante.gd" id="15_vivmo"]
+[ext_resource type="Script" uid="uid://ca7xlwc43x5cm" path="res://partida.gd" id="16_partida"]
+[ext_resource type="Script" uid="uid://dsmwslx0png2f" path="res://checkpoint.gd" id="17_checkpoint"]
+[ext_resource type="Script" uid="uid://c0vx1a8rfkvt4" path="res://meta_al_morir.gd" id="18_meta"]
 
 [sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
 
@@ -27,19 +29,40 @@ background_mode = 2
 sky = SubResource("Cielo")
 
 [sub_resource type="BoxMesh" id="PisoMalla"]
-size = Vector3(30, 1, 4)
+size = Vector3(36, 1, 4)
+
+[sub_resource type="StandardMaterial3D" id="MatPiso"]
+albedo_color = Color(0.145, 0.169, 0.239, 1)
 
 [sub_resource type="BoxShape3D" id="PisoForma"]
-size = Vector3(30, 1, 4)
+size = Vector3(36, 1, 4)
 
 [sub_resource type="BoxMesh" id="PlatMalla"]
 size = Vector3(3, 0.4, 4)
 
 [sub_resource type="StandardMaterial3D" id="PlatMat"]
-albedo_color = Color(0.85, 0.55, 0.25, 1)
+albedo_color = Color(0.18, 0.212, 0.314, 1)
 
 [sub_resource type="BoxShape3D" id="PlatForma"]
 size = Vector3(3, 0.4, 4)
+
+[sub_resource type="BoxMesh" id="MuroFondoMalla"]
+size = Vector3(36, 6, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="MatPiedra"]
+albedo_color = Color(0.106, 0.122, 0.169, 1)
+
+[sub_resource type="BoxMesh" id="MuroLadoMalla"]
+size = Vector3(1, 6, 4)
+
+[sub_resource type="BoxShape3D" id="MuroLadoForma"]
+size = Vector3(1, 6, 4)
+
+[sub_resource type="BoxMesh" id="DintelMalla"]
+size = Vector3(5, 3, 4)
+
+[sub_resource type="BoxShape3D" id="DintelForma"]
+size = Vector3(5, 3, 4)
 
 [sub_resource type="CapsuleShape3D" id="Capsula"]
 radius = 0.35
@@ -54,7 +77,47 @@ height = 1.75
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kddjp"]
 roughness = 0.2
 
+[sub_resource type="BoxMesh" id="EscalonMalla"]
+size = Vector3(2, 0.5, 4)
+
+[sub_resource type="StandardMaterial3D" id="MatPiedraClara"]
+albedo_color = Color(0.18, 0.212, 0.314, 1)
+
+[sub_resource type="BoxShape3D" id="EscalonForma"]
+size = Vector3(2, 0.5, 4)
+
+[sub_resource type="BoxMesh" id="EscalonAltoMalla"]
+size = Vector3(2, 1, 4)
+
+[sub_resource type="BoxShape3D" id="EscalonAltoForma"]
+size = Vector3(2, 1, 4)
+
+[sub_resource type="BoxMesh" id="RepisaMalla"]
+size = Vector3(3, 0.4, 4)
+
+[sub_resource type="BoxShape3D" id="RepisaForma"]
+size = Vector3(3, 0.4, 4)
+
+[sub_resource type="BoxMesh" id="MarcoPilarMalla"]
+size = Vector3(0.35, 3.2, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="MatDorado"]
+albedo_color = Color(0.831, 0.627, 0.09, 1)
+roughness = 0.4
+emission_enabled = true
+emission = Color(0.831, 0.627, 0.09, 1)
+emission_energy_multiplier = 0.35
+
+[sub_resource type="BoxMesh" id="MarcoDintelMalla"]
+size = Vector3(2.4, 0.35, 0.3)
+
+[sub_resource type="BoxMesh" id="PuertaHojaMalla"]
+size = Vector3(1.7, 2.9, 0.2)
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_xrivr"]
+
+[sub_resource type="BoxShape3D" id="CheckpointForma"]
+size = Vector3(1.5, 4, 4)
 
 [node name="Main" type="Node3D" unique_id=1437962169]
 
@@ -72,6 +135,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Suelo" unique_id=358964054]
 mesh = SubResource("PisoMalla")
+surface_material_override/0 = SubResource("MatPiso")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Suelo" unique_id=1462499478]
 shape = SubResource("PisoForma")
@@ -79,7 +143,7 @@ shape = SubResource("PisoForma")
 [node name="Plataformas" type="Node3D" parent="." unique_id=2119685014]
 
 [node name="Plataforma1" type="StaticBody3D" parent="Plataformas" unique_id=1909871579]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0.4, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0.2, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Plataformas/Plataforma1" unique_id=1422532792]
 mesh = SubResource("PlatMalla")
@@ -88,25 +152,48 @@ surface_material_override/0 = SubResource("PlatMat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Plataformas/Plataforma1" unique_id=767109800]
 shape = SubResource("PlatForma")
 
-[node name="Plataforma2" type="StaticBody3D" parent="Plataformas" unique_id=2132391088]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 0.4, 0)
+[node name="Muros" type="Node3D" parent="." unique_id=407828568]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Plataformas/Plataforma2" unique_id=1546450656]
-mesh = SubResource("PlatMalla")
-surface_material_override/0 = SubResource("PlatMat")
+[node name="MuroFondo" type="MeshInstance3D" parent="Muros" unique_id=898733444]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -2.25)
+mesh = SubResource("MuroFondoMalla")
+surface_material_override/0 = SubResource("MatPiedra")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Plataformas/Plataforma2" unique_id=2052315976]
-shape = SubResource("PlatForma")
+[node name="MuroIzquierdo" type="StaticBody3D" parent="Muros" unique_id=1524497572]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.5, 3, 0)
 
-[node name="Plataforma3" type="StaticBody3D" parent="Plataformas" unique_id=2091528273]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 2.9, 0)
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Muros/MuroIzquierdo" unique_id=1006380834]
+mesh = SubResource("MuroLadoMalla")
+surface_material_override/0 = SubResource("MatPiedra")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Plataformas/Plataforma3" unique_id=1897320318]
-mesh = SubResource("PlatMalla")
-surface_material_override/0 = SubResource("PlatMat")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Muros/MuroIzquierdo" unique_id=221906369]
+shape = SubResource("MuroLadoForma")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Plataformas/Plataforma3" unique_id=423133219]
-shape = SubResource("PlatForma")
+[node name="MuroDerecho" type="StaticBody3D" parent="Muros" unique_id=1955695800]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.5, 3, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Muros/MuroDerecho" unique_id=1450191369]
+mesh = SubResource("MuroLadoMalla")
+surface_material_override/0 = SubResource("MatPiedra")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Muros/MuroDerecho" unique_id=630932088]
+shape = SubResource("MuroLadoForma")
+
+[node name="Dintel" type="StaticBody3D" parent="Muros" unique_id=2052573886]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Muros/Dintel" unique_id=1107809988]
+mesh = SubResource("DintelMalla")
+surface_material_override/0 = SubResource("MatPiedra")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Muros/Dintel" unique_id=2146115234]
+shape = SubResource("DintelForma")
+
+[node name="AntorchaPaso" type="OmniLight3D" parent="Muros" unique_id=338989855]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, -1)
+light_color = Color(0.831, 0.627, 0.09, 1)
+light_energy = 0.9
+omni_attenuation = 2.0
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=2038079311 node_paths=PackedStringArray("objetivo")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 12)
@@ -116,10 +203,11 @@ size = 7.0
 script = ExtResource("1_lquwl")
 objetivo = NodePath("../Personaje")
 distancia = Vector3(0, 2, 12)
-limite_min = Vector2(-8, -10)
-limite_max = Vector2(8, 10)
+limite_min = Vector2(-11.3, -10)
+limite_max = Vector2(11.3, 10)
 
 [node name="Personaje" type="CharacterBody3D" parent="." unique_id=897854135 node_paths=PackedStringArray("camara") groups=["jugador"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 0)
 axis_lock_linear_z = true
 script = ExtResource("1_pj")
 camara = NodePath("../Camera3D")
@@ -127,10 +215,6 @@ camara = NodePath("../Camera3D")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Personaje" unique_id=216541696]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
 shape = SubResource("Capsula")
-
-[node name="ModeloViejo" parent="Personaje" unique_id=1637296909 instance=ExtResource("2_modelo")]
-transform = Transform3D(-2.6, 0, 0, 0, 2.6, 0, 0, 0, -2.6, 0, 0, 0)
-visible = false
 
 [node name="Parry" type="Node" parent="Personaje" unique_id=1326988459]
 script = ExtResource("3_1bvp3")
@@ -154,7 +238,7 @@ script = ExtResource("7_4c57u")
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
 
 [node name="caja1" type="StaticBody3D" parent="." unique_id=1891220961 groups=["interactivos"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0.5, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="caja1" unique_id=1266793030]
 mesh = SubResource("BoxMesh_u5bk5")
@@ -163,7 +247,7 @@ mesh = SubResource("BoxMesh_u5bk5")
 shape = SubResource("BoxShape3D_u5bk5")
 
 [node name="caja2" type="StaticBody3D" parent="." unique_id=613964518 groups=["interactivos"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0.5, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="caja2" unique_id=1822604530]
 mesh = SubResource("BoxMesh_u5bk5")
@@ -187,12 +271,89 @@ surface_material_override/0 = SubResource("StandardMaterial3D_kddjp")
 [node name="SalaA" type="Node3D" parent="." unique_id=1697326703]
 
 [node name="Hermano" parent="SalaA" unique_id=605523774 instance=ExtResource("11_hermano")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, 0)
+
+[node name="Meta" type="Node" parent="SalaA/Hermano" unique_id=58626439]
+script = ExtResource("18_meta")
+
+[node name="EscalonA1" type="StaticBody3D" parent="SalaA" unique_id=933757594]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.5, 0.25, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SalaA/EscalonA1" unique_id=2096648429]
+mesh = SubResource("EscalonMalla")
+surface_material_override/0 = SubResource("MatPiedraClara")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SalaA/EscalonA1" unique_id=2143213060]
+shape = SubResource("EscalonForma")
+
+[node name="EscalonA2" type="StaticBody3D" parent="SalaA" unique_id=1945530183]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SalaA/EscalonA2" unique_id=488706901]
+mesh = SubResource("EscalonAltoMalla")
+surface_material_override/0 = SubResource("MatPiedraClara")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SalaA/EscalonA2" unique_id=459692485]
+shape = SubResource("EscalonAltoForma")
+
+[node name="RepisaA" type="StaticBody3D" parent="SalaA" unique_id=1169329105]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 1.3, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SalaA/RepisaA" unique_id=277616892]
+mesh = SubResource("RepisaMalla")
+surface_material_override/0 = SubResource("MatPiedraClara")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SalaA/RepisaA" unique_id=1793397227]
+shape = SubResource("RepisaForma")
+
+[node name="PuertaSellada" type="Node3D" parent="SalaA" unique_id=26776379]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 1.5, -1.85)
+
+[node name="PilarIzq" type="MeshInstance3D" parent="SalaA/PuertaSellada" unique_id=968548156]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.6, 0)
+mesh = SubResource("MarcoPilarMalla")
+surface_material_override/0 = SubResource("MatDorado")
+
+[node name="PilarDer" type="MeshInstance3D" parent="SalaA/PuertaSellada" unique_id=1890971895]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.6, 0)
+mesh = SubResource("MarcoPilarMalla")
+surface_material_override/0 = SubResource("MatDorado")
+
+[node name="DintelPuerta" type="MeshInstance3D" parent="SalaA/PuertaSellada" unique_id=1298264599]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.2, 0)
+mesh = SubResource("MarcoDintelMalla")
+surface_material_override/0 = SubResource("MatDorado")
+
+[node name="Hoja" type="MeshInstance3D" parent="SalaA/PuertaSellada" unique_id=2097930512]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, -0.05)
+mesh = SubResource("PuertaHojaMalla")
+surface_material_override/0 = SubResource("MatPiedra")
+
+[node name="LuzPuerta" type="OmniLight3D" parent="SalaA/PuertaSellada" unique_id=323819111]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 1.2)
+light_color = Color(0.831, 0.627, 0.09, 1)
+omni_range = 4.5
+omni_attenuation = 2.0
+
+[node name="AntorchaA1" type="OmniLight3D" parent="SalaA" unique_id=726489950]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 2.5, -1)
+light_color = Color(0.831, 0.627, 0.09, 1)
+light_energy = 0.9
+omni_attenuation = 2.0
+
+[node name="AntorchaA2" type="OmniLight3D" parent="SalaA" unique_id=2057953402]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2.5, -1)
+light_color = Color(0.831, 0.627, 0.09, 1)
+light_energy = 0.9
+omni_attenuation = 2.0
 
 [node name="SalaB" type="Node3D" parent="." unique_id=1918942932]
 
 [node name="Verdugo" parent="SalaB" unique_id=2053470147 instance=ExtResource("12_dg77c")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
+
+[node name="Meta" type="Node" parent="SalaB/Verdugo" unique_id=726813431]
+script = ExtResource("18_meta")
 
 [node name="Disparador" type="Area3D" parent="SalaB" unique_id=873837475]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
@@ -226,6 +387,38 @@ light_color = Color(0.35686275, 0.29411766, 0.5411765, 1)
 shadow_enabled = true
 omni_attenuation = 2.0
 script = ExtResource("15_vivmo")
+
+[node name="EscalonB1" type="StaticBody3D" parent="SalaB" unique_id=405992284]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SalaB/EscalonB1" unique_id=1375364077]
+mesh = SubResource("EscalonAltoMalla")
+surface_material_override/0 = SubResource("MatPiedraClara")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SalaB/EscalonB1" unique_id=56189991]
+shape = SubResource("EscalonAltoForma")
+
+[node name="RepisaB" type="StaticBody3D" parent="SalaB" unique_id=1175003727]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 1.8, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SalaB/RepisaB" unique_id=1167817534]
+mesh = SubResource("RepisaMalla")
+surface_material_override/0 = SubResource("MatPiedraClara")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SalaB/RepisaB" unique_id=1296974767]
+shape = SubResource("RepisaForma")
+
+[node name="Checkpoint" type="Area3D" parent="." unique_id=1561199256]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+script = ExtResource("17_checkpoint")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Checkpoint" unique_id=1222493172]
+shape = SubResource("CheckpointForma")
+
+[node name="Partida" type="Node" parent="." unique_id=1815202420]
+script = ExtResource("16_partida")
+tiempo_limite = 2.0
+metas = 1
 
 [node name="Reservado" type="Node3D" parent="." unique_id=1698877738]
 visible = false
