@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://5ltrn66kgvcq"]
+
+[ext_resource type="Script" uid="uid://baun2vlfqeopc" path="res://jefe.gd" id="1_4euyg"]
+
+[node name="Jefe" type="Node3D" unique_id=491580477]
+script = ExtResource("1_4euyg")
