@@ -20,6 +20,7 @@
 [ext_resource type="Script" uid="uid://ca7xlwc43x5cm" path="res://partida.gd" id="16_partida"]
 [ext_resource type="Script" uid="uid://dsmwslx0png2f" path="res://checkpoint.gd" id="17_checkpoint"]
 [ext_resource type="Script" uid="uid://c0vx1a8rfkvt4" path="res://meta_al_morir.gd" id="18_meta"]
+[ext_resource type="PackedScene" uid="uid://5ltrn66kgvcq" path="res://jefe.tscn" id="23_d13ii"]
 [ext_resource type="Script" uid="uid://ccjdxvnkd4jkq" path="res://puerta.gd" id="24_qsp4k"]
 [ext_resource type="Texture2D" uid="uid://5xdhjbpmhylk" path="res://escenario/linterna.png" id="25_kq58d"]
 
@@ -572,3 +573,6 @@ script = ExtResource("15_vivmo")
 energia_base = 1.6
 amplitud = 0.25
 semilla = 5
+
+[node name="Jefe" parent="." unique_id=1263683044 instance=ExtResource("23_d13ii")]
+transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 15, 7.3, 0)

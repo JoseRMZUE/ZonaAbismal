@@ -1,6 +1,17 @@
 [gd_scene format=3 uid="uid://5ltrn66kgvcq"]
 
-[ext_resource type="Script" uid="uid://baun2vlfqeopc" path="res://jefe.gd" id="1_4euyg"]
+[ext_resource type="Script" uid="uid://baun2vlfqeopc" path="res://jefe.gd" id="1_2w8do"]
+[ext_resource type="PackedScene" uid="uid://bals8mej4uv6r" path="res://Jefe/jefe_zombie.glb" id="1_4euyg"]
 
-[node name="Jefe" type="Node3D" unique_id=491580477]
-script = ExtResource("1_4euyg")
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_u5bk5"]
+height = 1.9
+
+[node name="Jefe" type="CharacterBody3D" unique_id=1263683044]
+script = ExtResource("1_2w8do")
+
+[node name="Modelo" parent="." unique_id=1224766174 instance=ExtResource("1_4euyg")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=496907520]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.995, 0)
+top_level = true
+shape = SubResource("CapsuleShape3D_u5bk5")
