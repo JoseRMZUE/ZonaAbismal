@@ -1,7 +1,5 @@
 extends Node
-# T9 N2 - Tarea C - decidir por reglas
  
-# GOLPE_FUERTE y CURARSE van al final para no cambiar los números del patrón.
 enum Accion { ATACAR, CARGAR, DEFENDER, GOLPE_FUERTE, CURARSE }
  
 @export var ritmo: float = 1.0
@@ -12,6 +10,10 @@ enum Accion { ATACAR, CARGAR, DEFENDER, GOLPE_FUERTE, CURARSE }
 @export var vida_baja: int = 20
 @export var curas: int = 1
 @export var cura: int = 15
+# De cada 100 turnos normales, cuántos va a cada acción.
+@export var pesos: Array[int] = [60, 25, 15]
+@export var semilla: int = 7
+@export var factor_acelera: float = 0.75
  
 var indice: int = 0
 var turno_numero: int = 0
@@ -19,13 +21,21 @@ var reloj: float = 0.0
 var cargado: bool = false
 var ultima_accion: int = 0
  
+var rng := RandomNumberGenerator.new()
+var veces: Array[int] = [0, 0, 0]
+ 
  
 func _ready() -> void:
+	rng.seed = semilla
 	reloj = ritmo
 	_preparar_animaciones()
  
  
 func _physics_process(delta: float) -> void:
+	# Prueba: Enter = el jugador falló. Borrar estas dos líneas antes del commit.
+	if Input.is_action_just_pressed("ui_accept"):
+		jugador_fallo()
+ 
 	if muerto:
 		return
  
@@ -37,6 +47,9 @@ func _physics_process(delta: float) -> void:
 	if reloj <= 0.001:
 		reloj = ritmo
 		jugar_turno()
+ 
+	if turno_numero == cuantos_turnos:
+		print("veces: ", veces)
  
  
 func jugar_turno() -> void:
@@ -69,7 +82,6 @@ func jugar_turno() -> void:
 			print("    se cura: vida ", vida)
  
  
-# El orden es la personalidad: la primera regla que se cumple gana.
 func decidir() -> int:
 	if cargado:
 		return Accion.GOLPE_FUERTE
@@ -77,12 +89,40 @@ func decidir() -> int:
 	if vida <= vida_baja and curas > 0:
 		return Accion.CURARSE
  
-	var a = patron[indice]
-	indice = (indice + 1) % patron.size()
+	var a = elegir_por_peso()
+	veces[a] += 1
 	return a
  
  
-# La llama el jugador cuando le acierta.
+# Saca un número de 1 a la suma de los pesos y ve en qué tramo cayó.
+func elegir_por_peso() -> int:
+	var total := 0
+ 
+	for p in pesos:
+		total += p
+ 
+	var sale := rng.randi_range(1, total)
+	var acumulado := 0
+ 
+	for i in range(pesos.size()):
+		acumulado += pesos[i]
+ 
+		if sale <= acumulado:
+			return i
+ 
+	return 0
+ 
+ 
+# Cuando el jugador falla la pregunta, el enemigo se acelera.
+func jugador_fallo() -> void:
+	ritmo *= factor_acelera
+	print("    falló: el turno ahora dura ", snappedf(ritmo, 0.01), " s")
+ 
+	# Ruge solo si no esta en medio de una accion importante.
+	if anim != null and not muerto and (not anim.is_playing() or anim.current_animation == "idle"):
+		_reproducir("furia", false)
+ 
+ 
 func recibir_golpe(cuanto: int) -> void:
 	vida -= cuanto
 	print("    el enemigo recibe ", cuanto, ": vida ", vida)
