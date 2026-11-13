@@ -25,6 +25,15 @@ var estado = Estado.QUIETO
 var ruido = 0.0
 var reloj_ataque = 0.0
 
+
+func _ready():
+	# Escaleras del escenario pintado: los escalones cortos cuentan como piso
+	# (hasta 75°) y al bajar no lo despegan del suelo. Los muros de verdad
+	# (casi 90°) siguen siendo muros.
+	floor_max_angle = deg_to_rad(75.0)
+	floor_snap_length = 0.35
+
+
 func _physics_process(delta):
 	if not is_on_floor():
 		velocity.y -= gravedad * delta

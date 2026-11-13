@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://c73cyx7231cao"]
 
+[ext_resource type="PackedScene" path="res://escenario_templo.tscn" id="1_0odxb"]
 [ext_resource type="Script" uid="uid://bbpwkx23dq8d2" path="res://camera_sigue.gd" id="1_lquwl"]
 [ext_resource type="Script" uid="uid://bj0372xnq02wk" path="res://personaje.gd" id="1_pj"]
 [ext_resource type="Script" uid="uid://s3lbbb62hkke" path="res://parry.gd" id="3_1bvp3"]
@@ -19,6 +20,8 @@
 [ext_resource type="Script" uid="uid://ca7xlwc43x5cm" path="res://partida.gd" id="16_partida"]
 [ext_resource type="Script" uid="uid://dsmwslx0png2f" path="res://checkpoint.gd" id="17_checkpoint"]
 [ext_resource type="Script" uid="uid://c0vx1a8rfkvt4" path="res://meta_al_morir.gd" id="18_meta"]
+[ext_resource type="Script" uid="uid://ccjdxvnkd4jkq" path="res://puerta.gd" id="24_qsp4k"]
+[ext_resource type="Texture2D" uid="uid://5xdhjbpmhylk" path="res://escenario/linterna.png" id="25_kq58d"]
 
 [sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
 
@@ -26,44 +29,11 @@
 sky_material = SubResource("CieloMat")
 
 [sub_resource type="Environment" id="Entorno"]
-background_mode = 2
+background_mode = 1
+background_color = Color(0.03, 0.02, 0.05, 1)
 sky = SubResource("Cielo")
-
-[sub_resource type="BoxMesh" id="PisoMalla"]
-size = Vector3(36, 1, 4)
-
-[sub_resource type="StandardMaterial3D" id="MatPiso"]
-albedo_color = Color(0.145, 0.169, 0.239, 1)
-
-[sub_resource type="BoxShape3D" id="PisoForma"]
-size = Vector3(36, 1, 4)
-
-[sub_resource type="BoxMesh" id="PlatMalla"]
-size = Vector3(3, 0.4, 4)
-
-[sub_resource type="StandardMaterial3D" id="PlatMat"]
-albedo_color = Color(0.18, 0.212, 0.314, 1)
-
-[sub_resource type="BoxShape3D" id="PlatForma"]
-size = Vector3(3, 0.4, 4)
-
-[sub_resource type="BoxMesh" id="MuroFondoMalla"]
-size = Vector3(36, 6, 0.5)
-
-[sub_resource type="StandardMaterial3D" id="MatPiedra"]
-albedo_color = Color(0.106, 0.122, 0.169, 1)
-
-[sub_resource type="BoxMesh" id="MuroLadoMalla"]
-size = Vector3(1, 6, 4)
-
-[sub_resource type="BoxShape3D" id="MuroLadoForma"]
-size = Vector3(1, 6, 4)
-
-[sub_resource type="BoxMesh" id="DintelMalla"]
-size = Vector3(5, 3, 4)
-
-[sub_resource type="BoxShape3D" id="DintelForma"]
-size = Vector3(5, 3, 4)
+ambient_light_source = 2
+ambient_light_color = Color(0.72, 0.6, 1, 1)
 
 [sub_resource type="CapsuleShape3D" id="Capsula"]
 radius = 0.35
@@ -78,47 +48,168 @@ height = 1.75
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kddjp"]
 roughness = 0.2
 
-[sub_resource type="BoxMesh" id="EscalonMalla"]
-size = Vector3(2, 0.5, 4)
-
-[sub_resource type="StandardMaterial3D" id="MatPiedraClara"]
-albedo_color = Color(0.18, 0.212, 0.314, 1)
-
-[sub_resource type="BoxShape3D" id="EscalonForma"]
-size = Vector3(2, 0.5, 4)
-
-[sub_resource type="BoxMesh" id="EscalonAltoMalla"]
-size = Vector3(2, 1, 4)
-
-[sub_resource type="BoxShape3D" id="EscalonAltoForma"]
-size = Vector3(2, 1, 4)
-
-[sub_resource type="BoxMesh" id="RepisaMalla"]
-size = Vector3(3, 0.4, 4)
-
-[sub_resource type="BoxShape3D" id="RepisaForma"]
-size = Vector3(3, 0.4, 4)
-
-[sub_resource type="BoxMesh" id="MarcoPilarMalla"]
-size = Vector3(0.35, 3.2, 0.3)
-
-[sub_resource type="StandardMaterial3D" id="MatDorado"]
-albedo_color = Color(0.831, 0.627, 0.09, 1)
-roughness = 0.4
-emission_enabled = true
-emission = Color(0.831, 0.627, 0.09, 1)
-emission_energy_multiplier = 0.35
-
-[sub_resource type="BoxMesh" id="MarcoDintelMalla"]
-size = Vector3(2.4, 0.35, 0.3)
-
-[sub_resource type="BoxMesh" id="PuertaHojaMalla"]
-size = Vector3(1.7, 2.9, 0.2)
-
 [sub_resource type="BoxShape3D" id="BoxShape3D_xrivr"]
 
 [sub_resource type="BoxShape3D" id="CheckpointForma"]
 size = Vector3(1.5, 4, 4)
+
+[sub_resource type="Gradient" id="Gradient_seu75"]
+offsets = PackedFloat32Array(0, 0.55, 1)
+colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_htxhm"]
+gradient = SubResource("Gradient_seu75")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_jq2sk"]
+size = Vector3(1.2, 3, 3)
+
+[sub_resource type="Gradient" id="Gradient_4k2k6"]
+colors = PackedColorArray(0.831, 0.627, 0.09, 0.55, 0.831, 0.627, 0.09, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_0rl1p"]
+gradient = SubResource("Gradient_4k2k6")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ok6jj"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_texture = SubResource("GradientTexture2D_0rl1p")
+
+[sub_resource type="QuadMesh" id="QuadMesh_facbu"]
+size = Vector2(2.2, 4.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_b1qrp"]
+size = Vector3(1.2, 3, 3)
+
+[sub_resource type="Gradient" id="Gradient_come4"]
+colors = PackedColorArray(0.831, 0.627, 0.09, 0.55, 0.831, 0.627, 0.09, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_h8e4i"]
+gradient = SubResource("Gradient_come4")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4lmeg"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_texture = SubResource("GradientTexture2D_h8e4i")
+
+[sub_resource type="QuadMesh" id="QuadMesh_0cp0l"]
+size = Vector2(2.2, 4.2)
+
+[sub_resource type="Gradient" id="Gradient_d2t1y"]
+colors = PackedColorArray(1, 0.55, 0.15, 0.55, 1, 0.4, 0.1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_gngh3"]
+gradient = SubResource("Gradient_d2t1y")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0n3wm"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_texture = SubResource("GradientTexture2D_gngh3")
+
+[sub_resource type="QuadMesh" id="QuadMesh_qnost"]
+size = Vector2(4.5, 4.5)
+
+[sub_resource type="Gradient" id="Gradient_wnkbs"]
+colors = PackedColorArray(1, 0.55, 0.15, 0.55, 1, 0.4, 0.1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_f6a44"]
+gradient = SubResource("Gradient_wnkbs")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0cbny"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_texture = SubResource("GradientTexture2D_f6a44")
+
+[sub_resource type="QuadMesh" id="QuadMesh_hrvbo"]
+size = Vector2(4.5, 4.5)
+
+[sub_resource type="Gradient" id="Gradient_uypp3"]
+colors = PackedColorArray(1, 0.55, 0.15, 0.55, 1, 0.4, 0.1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_blkrb"]
+gradient = SubResource("Gradient_uypp3")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_abqjc"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_texture = SubResource("GradientTexture2D_blkrb")
+
+[sub_resource type="QuadMesh" id="QuadMesh_6iyjs"]
+size = Vector2(4.5, 4.5)
+
+[sub_resource type="Gradient" id="Gradient_4w656"]
+colors = PackedColorArray(1, 0.55, 0.15, 0.55, 1, 0.4, 0.1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_e71vb"]
+gradient = SubResource("Gradient_4w656")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rnkwl"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_texture = SubResource("GradientTexture2D_e71vb")
+
+[sub_resource type="QuadMesh" id="QuadMesh_vke2r"]
+size = Vector2(4.5, 4.5)
+
+[sub_resource type="Gradient" id="Gradient_uit24"]
+colors = PackedColorArray(1, 0.55, 0.15, 0.55, 1, 0.4, 0.1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_ruth0"]
+gradient = SubResource("Gradient_uit24")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rm4vd"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_texture = SubResource("GradientTexture2D_ruth0")
+
+[sub_resource type="QuadMesh" id="QuadMesh_pjyto"]
+size = Vector2(4.5, 4.5)
 
 [node name="Main" type="Node3D" unique_id=1437962169]
 
@@ -131,84 +222,24 @@ shadow_enabled = true
 shadow_bias = 3.0
 shadow_normal_bias = 6.0
 
-[node name="Suelo" type="StaticBody3D" parent="." unique_id=389847724]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Suelo" unique_id=358964054]
-mesh = SubResource("PisoMalla")
-surface_material_override/0 = SubResource("MatPiso")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Suelo" unique_id=1462499478]
-shape = SubResource("PisoForma")
-
-[node name="Plataformas" type="Node3D" parent="." unique_id=2119685014]
-
-[node name="Plataforma1" type="StaticBody3D" parent="Plataformas" unique_id=1909871579]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0.2, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Plataformas/Plataforma1" unique_id=1422532792]
-mesh = SubResource("PlatMalla")
-surface_material_override/0 = SubResource("PlatMat")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Plataformas/Plataforma1" unique_id=767109800]
-shape = SubResource("PlatForma")
-
-[node name="Muros" type="Node3D" parent="." unique_id=407828568]
-
-[node name="MuroFondo" type="MeshInstance3D" parent="Muros" unique_id=898733444]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -2.25)
-mesh = SubResource("MuroFondoMalla")
-surface_material_override/0 = SubResource("MatPiedra")
-
-[node name="MuroIzquierdo" type="StaticBody3D" parent="Muros" unique_id=1524497572]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.5, 3, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Muros/MuroIzquierdo" unique_id=1006380834]
-mesh = SubResource("MuroLadoMalla")
-surface_material_override/0 = SubResource("MatPiedra")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Muros/MuroIzquierdo" unique_id=221906369]
-shape = SubResource("MuroLadoForma")
-
-[node name="MuroDerecho" type="StaticBody3D" parent="Muros" unique_id=1955695800]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.5, 3, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Muros/MuroDerecho" unique_id=1450191369]
-mesh = SubResource("MuroLadoMalla")
-surface_material_override/0 = SubResource("MatPiedra")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Muros/MuroDerecho" unique_id=630932088]
-shape = SubResource("MuroLadoForma")
-
-[node name="Dintel" type="StaticBody3D" parent="Muros" unique_id=2052573886]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.5, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Muros/Dintel" unique_id=1107809988]
-mesh = SubResource("DintelMalla")
-surface_material_override/0 = SubResource("MatPiedra")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Muros/Dintel" unique_id=2146115234]
-shape = SubResource("DintelForma")
-
-[node name="AntorchaPaso" type="OmniLight3D" parent="Muros" unique_id=338989855]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, -1)
-light_color = Color(0.831, 0.627, 0.09, 1)
-light_energy = 0.9
-omni_attenuation = 2.0
+[node name="EscenarioTemplo" parent="." unique_id=1009551050 instance=ExtResource("1_0odxb")]
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=2038079311 node_paths=PackedStringArray("objetivo")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 12)
 projection = 1
 current = true
-size = 7.0
+size = 12.0
 script = ExtResource("1_lquwl")
 objetivo = NodePath("../Personaje")
 distancia = Vector3(0, 2, 12)
+suavizado = 5.0
 limite_min = Vector2(-11.3, -10)
 limite_max = Vector2(11.3, 10)
+lateral = true
+area_mapa = Rect2(0, -7.784, 46.545, 31.091)
 
 [node name="Personaje" type="CharacterBody3D" parent="." unique_id=897854135 node_paths=PackedStringArray("camara") groups=["jugador"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 0)
 axis_lock_linear_z = true
 script = ExtResource("1_pj")
 camara = NodePath("../Camera3D")
@@ -242,7 +273,7 @@ transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0
 script = ExtResource("8_cegan")
 
 [node name="caja1" type="StaticBody3D" parent="." unique_id=1891220961 groups=["interactivos"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.5, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="caja1" unique_id=1266793030]
 mesh = SubResource("BoxMesh_u5bk5")
@@ -251,7 +282,7 @@ mesh = SubResource("BoxMesh_u5bk5")
 shape = SubResource("BoxShape3D_u5bk5")
 
 [node name="caja2" type="StaticBody3D" parent="." unique_id=613964518 groups=["interactivos"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.5, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="caja2" unique_id=1822604530]
 mesh = SubResource("BoxMesh_u5bk5")
@@ -268,76 +299,18 @@ entorno = NodePath("../WorldEnvironment")
 script = ExtResource("10_dg77c")
 
 [node name="EsferaBrillo" type="MeshInstance3D" parent="." unique_id=268766588]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 1, 0)
 mesh = SubResource("SphereMesh_u5bk5")
 surface_material_override/0 = SubResource("StandardMaterial3D_kddjp")
 
 [node name="SalaA" type="Node3D" parent="." unique_id=1697326703]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, 0)
 
 [node name="Hermano" parent="SalaA" unique_id=605523774 instance=ExtResource("11_hermano")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, 0)
 
 [node name="Meta" type="Node" parent="SalaA/Hermano" unique_id=58626439]
 script = ExtResource("18_meta")
-
-[node name="EscalonA1" type="StaticBody3D" parent="SalaA" unique_id=933757594]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.5, 0.25, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="SalaA/EscalonA1" unique_id=2096648429]
-mesh = SubResource("EscalonMalla")
-surface_material_override/0 = SubResource("MatPiedraClara")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="SalaA/EscalonA1" unique_id=2143213060]
-shape = SubResource("EscalonForma")
-
-[node name="EscalonA2" type="StaticBody3D" parent="SalaA" unique_id=1945530183]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0.5, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="SalaA/EscalonA2" unique_id=488706901]
-mesh = SubResource("EscalonAltoMalla")
-surface_material_override/0 = SubResource("MatPiedraClara")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="SalaA/EscalonA2" unique_id=459692485]
-shape = SubResource("EscalonAltoForma")
-
-[node name="RepisaA" type="StaticBody3D" parent="SalaA" unique_id=1169329105]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 1.3, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="SalaA/RepisaA" unique_id=277616892]
-mesh = SubResource("RepisaMalla")
-surface_material_override/0 = SubResource("MatPiedraClara")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="SalaA/RepisaA" unique_id=1793397227]
-shape = SubResource("RepisaForma")
-
-[node name="PuertaSellada" type="Node3D" parent="SalaA" unique_id=26776379]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 1.5, -1.85)
-
-[node name="PilarIzq" type="MeshInstance3D" parent="SalaA/PuertaSellada" unique_id=968548156]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.6, 0)
-mesh = SubResource("MarcoPilarMalla")
-surface_material_override/0 = SubResource("MatDorado")
-
-[node name="PilarDer" type="MeshInstance3D" parent="SalaA/PuertaSellada" unique_id=1890971895]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.6, 0)
-mesh = SubResource("MarcoPilarMalla")
-surface_material_override/0 = SubResource("MatDorado")
-
-[node name="DintelPuerta" type="MeshInstance3D" parent="SalaA/PuertaSellada" unique_id=1298264599]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.2, 0)
-mesh = SubResource("MarcoDintelMalla")
-surface_material_override/0 = SubResource("MatDorado")
-
-[node name="Hoja" type="MeshInstance3D" parent="SalaA/PuertaSellada" unique_id=2097930512]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, -0.05)
-mesh = SubResource("PuertaHojaMalla")
-surface_material_override/0 = SubResource("MatPiedra")
-
-[node name="LuzPuerta" type="OmniLight3D" parent="SalaA/PuertaSellada" unique_id=323819111]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 1.2)
-light_color = Color(0.831, 0.627, 0.09, 1)
-omni_range = 4.5
-omni_attenuation = 2.0
 
 [node name="AntorchaA1" type="OmniLight3D" parent="SalaA" unique_id=726489950]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 2.5, -1)
@@ -352,6 +325,7 @@ light_energy = 0.9
 omni_attenuation = 2.0
 
 [node name="SalaB" type="Node3D" parent="." unique_id=1918942932]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 7.33, 0)
 
 [node name="Verdugo" parent="SalaB" unique_id=2053470147 instance=ExtResource("12_dg77c")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
@@ -392,28 +366,8 @@ shadow_enabled = true
 omni_attenuation = 2.0
 script = ExtResource("15_vivmo")
 
-[node name="EscalonB1" type="StaticBody3D" parent="SalaB" unique_id=405992284]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0.5, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="SalaB/EscalonB1" unique_id=1375364077]
-mesh = SubResource("EscalonAltoMalla")
-surface_material_override/0 = SubResource("MatPiedraClara")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="SalaB/EscalonB1" unique_id=56189991]
-shape = SubResource("EscalonAltoForma")
-
-[node name="RepisaB" type="StaticBody3D" parent="SalaB" unique_id=1175003727]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 1.8, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="SalaB/RepisaB" unique_id=1167817534]
-mesh = SubResource("RepisaMalla")
-surface_material_override/0 = SubResource("MatPiedraClara")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="SalaB/RepisaB" unique_id=1296974767]
-shape = SubResource("RepisaForma")
-
 [node name="Checkpoint" type="Area3D" parent="." unique_id=1561199256]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 2.94, 0)
 script = ExtResource("17_checkpoint")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Checkpoint" unique_id=1222493172]
@@ -429,4 +383,192 @@ visible = false
 
 [node name="Enemigo" parent="Reservado" unique_id=1633887769 node_paths=PackedStringArray("objetivo") instance=ExtResource("3_h2yge")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 0)
+visible = false
 objetivo = NodePath("../../Personaje")
+
+[node name="LuzFrontal" type="DirectionalLight3D" parent="." unique_id=972170909]
+transform = Transform3D(1, 0, 0, 0, 0.9396926, 0.34202012, 0, -0.34202012, 0.9396926, 0, 0, 0)
+light_color = Color(0.85, 0.78, 1, 1)
+light_energy = 0.8
+
+[node name="Vineta" type="CanvasLayer" parent="." unique_id=1415165504]
+layer = 5
+
+[node name="Oscuridad" type="TextureRect" parent="Vineta" unique_id=2029200722]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_htxhm")
+expand_mode = 1
+
+[node name="Puertas" type="Node3D" parent="." unique_id=2143289288]
+
+[node name="LlegadaSalon" type="Marker3D" parent="Puertas" unique_id=1624500797]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 7.31, 0)
+
+[node name="PuertaAlSalon" type="Area3D" parent="Puertas" unique_id=947760574 node_paths=PackedStringArray("destino")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.7, 5.84, 0)
+script = ExtResource("24_qsp4k")
+destino = NodePath("../LlegadaSalon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Puertas/PuertaAlSalon" unique_id=873268915]
+shape = SubResource("BoxShape3D_jq2sk")
+
+[node name="Luz" type="OmniLight3D" parent="Puertas/PuertaAlSalon" unique_id=885509867]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 1)
+light_color = Color(0.831, 0.627, 0.09, 1)
+omni_range = 4.0
+
+[node name="Resplandor" type="MeshInstance3D" parent="Puertas/PuertaAlSalon" unique_id=1240468620]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+material_override = SubResource("StandardMaterial3D_ok6jj")
+mesh = SubResource("QuadMesh_facbu")
+
+[node name="LlegadaBosque" type="Marker3D" parent="Puertas" unique_id=1743791067]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, 16, 0)
+
+[node name="PuertaAlBosque" type="Area3D" parent="Puertas" unique_id=1208955051 node_paths=PackedStringArray("destino")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.8, 8.81, 0)
+script = ExtResource("24_qsp4k")
+destino = NodePath("../LlegadaBosque")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Puertas/PuertaAlBosque" unique_id=1510471770]
+shape = SubResource("BoxShape3D_b1qrp")
+
+[node name="Luz" type="OmniLight3D" parent="Puertas/PuertaAlBosque" unique_id=1302007926]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 1)
+light_color = Color(0.831, 0.627, 0.09, 1)
+omni_range = 4.0
+
+[node name="Resplandor" type="MeshInstance3D" parent="Puertas/PuertaAlBosque" unique_id=96505920]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+material_override = SubResource("StandardMaterial3D_4lmeg")
+mesh = SubResource("QuadMesh_0cp0l")
+
+[node name="Linternas" type="Node3D" parent="." unique_id=1063725372]
+
+[node name="Linterna1" type="Node3D" parent="Linternas" unique_id=90840697]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4.6, 0)
+
+[node name="Dibujo" type="Sprite3D" parent="Linternas/Linterna1" unique_id=1792619837]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, -1.2)
+pixel_size = 0.03409091
+alpha_cut = 1
+texture_filter = 0
+texture = ExtResource("25_kq58d")
+
+[node name="Halo" type="MeshInstance3D" parent="Linternas/Linterna1" unique_id=876716601]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, -1)
+material_override = SubResource("StandardMaterial3D_0n3wm")
+mesh = SubResource("QuadMesh_qnost")
+
+[node name="Luz" type="OmniLight3D" parent="Linternas/Linterna1" unique_id=1838594907]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0.8)
+light_color = Color(1, 0.55, 0.2, 1)
+omni_range = 7.0
+omni_attenuation = 1.5
+script = ExtResource("15_vivmo")
+energia_base = 1.6
+amplitud = 0.25
+semilla = 1
+
+[node name="Linterna2" type="Node3D" parent="Linternas" unique_id=1262600293]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 4.6, 0)
+
+[node name="Dibujo" type="Sprite3D" parent="Linternas/Linterna2" unique_id=513284876]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, -1.2)
+pixel_size = 0.03409091
+alpha_cut = 1
+texture_filter = 0
+texture = ExtResource("25_kq58d")
+
+[node name="Halo" type="MeshInstance3D" parent="Linternas/Linterna2" unique_id=551303857]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, -1)
+material_override = SubResource("StandardMaterial3D_0cbny")
+mesh = SubResource("QuadMesh_hrvbo")
+
+[node name="Luz" type="OmniLight3D" parent="Linternas/Linterna2" unique_id=1220083210]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0.8)
+light_color = Color(1, 0.55, 0.2, 1)
+omni_range = 7.0
+omni_attenuation = 1.5
+script = ExtResource("15_vivmo")
+energia_base = 1.6
+amplitud = 0.25
+semilla = 2
+
+[node name="Linterna3" type="Node3D" parent="Linternas" unique_id=222665166]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 11.9, 0)
+
+[node name="Dibujo" type="Sprite3D" parent="Linternas/Linterna3" unique_id=40687414]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, -1.2)
+pixel_size = 0.03409091
+alpha_cut = 1
+texture_filter = 0
+texture = ExtResource("25_kq58d")
+
+[node name="Halo" type="MeshInstance3D" parent="Linternas/Linterna3" unique_id=1903881569]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, -1)
+material_override = SubResource("StandardMaterial3D_abqjc")
+mesh = SubResource("QuadMesh_6iyjs")
+
+[node name="Luz" type="OmniLight3D" parent="Linternas/Linterna3" unique_id=1427039925]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0.8)
+light_color = Color(1, 0.55, 0.2, 1)
+omni_range = 7.0
+omni_attenuation = 1.5
+script = ExtResource("15_vivmo")
+energia_base = 1.6
+amplitud = 0.25
+semilla = 3
+
+[node name="Linterna4" type="Node3D" parent="Linternas" unique_id=1306702038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.5, 11.9, 0)
+
+[node name="Dibujo" type="Sprite3D" parent="Linternas/Linterna4" unique_id=1998987259]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, -1.2)
+pixel_size = 0.03409091
+alpha_cut = 1
+texture_filter = 0
+texture = ExtResource("25_kq58d")
+
+[node name="Halo" type="MeshInstance3D" parent="Linternas/Linterna4" unique_id=506481285]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, -1)
+material_override = SubResource("StandardMaterial3D_rnkwl")
+mesh = SubResource("QuadMesh_vke2r")
+
+[node name="Luz" type="OmniLight3D" parent="Linternas/Linterna4" unique_id=629284404]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0.8)
+light_color = Color(1, 0.55, 0.2, 1)
+omni_range = 7.0
+omni_attenuation = 1.5
+script = ExtResource("15_vivmo")
+energia_base = 1.6
+amplitud = 0.25
+semilla = 4
+
+[node name="Linterna5" type="Node3D" parent="Linternas" unique_id=1826265203]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34, 11.85, 0)
+
+[node name="Dibujo" type="Sprite3D" parent="Linternas/Linterna5" unique_id=1583185955]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, -1.2)
+pixel_size = 0.03409091
+alpha_cut = 1
+texture_filter = 0
+texture = ExtResource("25_kq58d")
+
+[node name="Halo" type="MeshInstance3D" parent="Linternas/Linterna5" unique_id=1095711107]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, -1)
+material_override = SubResource("StandardMaterial3D_rm4vd")
+mesh = SubResource("QuadMesh_pjyto")
+
+[node name="Luz" type="OmniLight3D" parent="Linternas/Linterna5" unique_id=950284450]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0.8)
+light_color = Color(1, 0.55, 0.2, 1)
+omni_range = 7.0
+omni_attenuation = 1.5
+script = ExtResource("15_vivmo")
+energia_base = 1.6
+amplitud = 0.25
+semilla = 5

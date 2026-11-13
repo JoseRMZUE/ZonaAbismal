@@ -1,0 +1,34 @@
+ZONA ABISMAL — ESCENARIO DEL TEMPLO (fondo pintado + colisiones)
+
+QUE ES
+  El mapa morado es una imagen (escenario/mapa_templo.png) puesta detras del
+  personaje. Las colisiones son invisibles y siguen los pisos, muros y
+  escaleras de esa imagen. La camara mira de lado, sin inclinacion.
+
+COMO VER LAS COLISIONES
+  F5 y pulsa F2: aparecen en rojo los bordes por donde se camina.
+  (Tambien: nodo EscenarioTemplo > VerColisiones > Mostrar.)
+
+ESCALA
+  88 pixeles de la imagen = 1 metro. El personaje mide 1.73 m.
+  Camara: nodo Camera3D > Size = 12 (cuantos metros de alto se ven).
+  Mas grande = personaje mas chico. Salto: altura_salto = 3.3 (sin cambios).
+
+PUERTAS (el dibujo tiene dos zonas separadas que no se tocan)
+  PuertaAlSalon : al final de la zona de abajo a la derecha -> salon de las gargolas.
+  PuertaAlBosque: al final del salon -> bosque (salida).
+  Son nodos del grupo "Puertas" en main.tscn; se pueden mover o borrar.
+
+LINTERNAS
+  Nodos "Linternas" en main.tscn. Cada una tiene dibujo, halo y luz que parpadea.
+
+CAMBIAR EL ARTE MAS ADELANTE
+  Cambia escenario/mapa_templo.png por otra imagen con LAS MISMAS DIMENSIONES
+  (4096 x 2736) y el mismo trazado: las colisiones siguen valiendo.
+
+DONDE QUEDO CADA COSA (en metros, x hacia la derecha, y hacia arriba)
+  Inicio del Personaje ........ x = 3,  y = 0
+  Hermano (Sala A) ............ x = 11  (pasillo de abajo)
+  Checkpoint .................. x = 22.5 (alcoba)
+  Verdugo (Sala B) ............ x = 32, y = 7.33 (sala derecha)
+  Salon (futuro jefe, Johan) .. x = 1.3 a 19, y = 7.31
