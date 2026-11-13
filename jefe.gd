@@ -1,17 +1,23 @@
 extends Node
+# T9 N2 - Tarea C - decidir por reglas
  
-enum Accion { ATACAR, CARGAR, DEFENDER }
+# GOLPE_FUERTE y CURARSE van al final para no cambiar los números del patrón.
+enum Accion { ATACAR, CARGAR, DEFENDER, GOLPE_FUERTE, CURARSE }
  
 @export var ritmo: float = 1.0
 @export var danio: int = 7
 @export var cuantos_turnos: int = 8
-# El patrón: se recorre con un índice, como la patrulla.
 @export var patron: Array[int] = [0, 0, 1, 2]
+@export var vida: int = 80
+@export var vida_baja: int = 20
+@export var curas: int = 1
+@export var cura: int = 15
  
 var indice: int = 0
 var turno_numero: int = 0
-var ultima_accion: int = 0
 var reloj: float = 0.0
+var cargado: bool = false
+var ultima_accion: int = 0
  
  
 func _ready() -> void:
@@ -20,6 +26,9 @@ func _ready() -> void:
  
  
 func _physics_process(delta: float) -> void:
+	if muerto:
+		return
+ 
 	if turno_numero >= cuantos_turnos:
 		return
  
@@ -33,22 +42,60 @@ func _physics_process(delta: float) -> void:
 func jugar_turno() -> void:
 	turno_numero += 1
  
-	var accion = patron[indice]
-	indice = (indice + 1) % patron.size()
+	var accion = decidir()
 	ultima_accion = accion
 	_animar(accion)
  
-	print("turno ", turno_numero, ": ", Accion.keys()[accion])
+	print("turno ", turno_numero, ": ", Accion.keys()[accion], " (vida ", vida, ")")
  
 	match accion:
 		Accion.ATACAR:
 			print("    ataca: ", danio, " de daño")
  
 		Accion.CARGAR:
+			cargado = true
 			print("    carga fuerzas")
  
 		Accion.DEFENDER:
 			print("    se defiende")
+ 
+		Accion.GOLPE_FUERTE:
+			cargado = false
+			print("    golpe fuerte: ", danio * 2, " de daño")
+ 
+		Accion.CURARSE:
+			curas -= 1
+			vida += cura
+			print("    se cura: vida ", vida)
+ 
+ 
+# El orden es la personalidad: la primera regla que se cumple gana.
+func decidir() -> int:
+	if cargado:
+		return Accion.GOLPE_FUERTE
+ 
+	if vida <= vida_baja and curas > 0:
+		return Accion.CURARSE
+ 
+	var a = patron[indice]
+	indice = (indice + 1) % patron.size()
+	return a
+ 
+ 
+# La llama el jugador cuando le acierta.
+func recibir_golpe(cuanto: int) -> void:
+	vida -= cuanto
+	print("    el enemigo recibe ", cuanto, ": vida ", vida)
+ 
+	if vida <= 0:
+		_morir()
+	elif anim != null and not (anim.current_animation in ANIM_PROTEGIDAS):
+		_reproducir("golpe_recibido", false)
+ 
+ 
+# Animaciones que un golpe recibido no interrumpe.
+const ANIM_PROTEGIDAS := ["cargar", "cargado_idle", "golpe_fuerte", "muerte"]
+var muerto: bool = false
  
  
 # ======================================================================================
@@ -91,7 +138,16 @@ func _animar(accion: int) -> void:
 	_reproducir(ANIM_POR_ACCION.get(accion, "idle"))
  
  
-func _al_terminar_animacion(_nombre: StringName) -> void:
-	if anim.is_playing():   # ya empezo otra (el siguiente turno)
+func _al_terminar_animacion(nombre: StringName) -> void:
+	if muerto or anim.is_playing():   # ya empezo otra (el siguiente turno)
 		return
-	_reproducir("idle", false)
+	if nombre == &"cargar" or nombre == &"cargado_idle":
+		_reproducir("cargado_idle" if cargado else "idle", false)
+	else:
+		_reproducir("idle", false)
+ 
+ 
+func _morir() -> void:
+	muerto = true
+	print("    el enemigo muere")
+	_reproducir("muerte", false)
