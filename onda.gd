@@ -34,3 +34,16 @@ static func normal_frente(s: float) -> Vector3:
 # Lambert: cuanta luz recibe una superficie con esa normal. hacia_luz = hacia donde esta la luz.
 static func lambert(n: Vector3, hacia_luz: Vector3) -> float:
 	return maxf(0.0, n.normalized().dot(hacia_luz.normalized()))
+
+# Altura de las DOS ondas sumadas (la de arriba mas la fina). La pendiente de una
+# suma es la suma de las pendientes.
+static func altura_doble(x: float, t: float, a1: float, l1: float, p1: float, a2: float, l2: float, p2: float) -> float:
+	return altura(x, t, a1, l1, p1) + altura(x, t, a2, l2, p2)
+
+static func pendiente_doble(x: float, t: float, a1: float, l1: float, p1: float, a2: float, l2: float, p2: float) -> float:
+	return pendiente(x, t, a1, l1, p1) + pendiente(x, t, a2, l2, p2)
+
+# De la altura h (entre -altura_maxima y +altura_maxima) a una mezcla de 0 a 1:
+# valle = 0 (color bajo), plano = 0.5, cresta = 1 (color alto).
+static func mezcla_altura(h: float, altura_maxima: float) -> float:
+	return clampf(h / (2.0 * altura_maxima) + 0.5, 0.0, 1.0)

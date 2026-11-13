@@ -16,21 +16,29 @@ height = 1.75
 render_priority = 0
 shader = ExtResource("4_velo")
 shader_parameter/color_bajo = Color(0.105882, 0.121569, 0.168627, 1)
+shader_parameter/color_alto = Color(0.831373, 0.627451, 0.0901961, 1)
 shader_parameter/amplitud = 0.1
 shader_parameter/longitud = 2.0
 shader_parameter/periodo = 2.0
+shader_parameter/amplitud2 = 0.04
+shader_parameter/longitud2 = 1.3
+shader_parameter/periodo2 = 1.7
 
 [sub_resource type="QuadMesh" id="QuadMesh_velo"]
 size = Vector2(4, 3)
-subdivide_width = 28
+subdivide_width = 44
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_velo_jefe"]
 render_priority = 0
 shader = ExtResource("4_velo")
 shader_parameter/color_bajo = Color(0.105882, 0.121569, 0.168627, 1)
+shader_parameter/color_alto = Color(0.831373, 0.627451, 0.0901961, 1)
 shader_parameter/amplitud = 0.18
 shader_parameter/longitud = 2.0
 shader_parameter/periodo = 1.2
+shader_parameter/amplitud2 = 0.04
+shader_parameter/longitud2 = 1.3
+shader_parameter/periodo2 = 1.7
 
 [sub_resource type="BoxMesh" id="BoxMesh_57wwi"]
 size = Vector3(30, 1, 4)
