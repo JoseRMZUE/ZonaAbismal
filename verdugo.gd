@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA }
+enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA, HUIR }   # NUEVO N3: HUIR
 
 @export var rapidez = 2.0
 @export var rango_ataque = 1.0
@@ -8,6 +8,8 @@ enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA }
 @export var tiempo_recarga = 1.2
 @export var alcance_golpe = 1.3
 @export var danio = 1
+@export var vida = 4          # NUEVO N3
+@export var vida_huida = 1    # NUEVO N3
 
 var estado = Estado.ACERCARSE
 var reloj = 0.0
@@ -17,7 +19,8 @@ var jugador = null
 
 func _ready():
 	jugador = get_tree().get_first_node_in_group("jugador")
-	
+
+
 func _physics_process(delta):
 	velocity += get_gravity() * delta
 	reloj = maxf(reloj - delta, 0.0)
@@ -34,9 +37,17 @@ func _physics_process(delta):
 			golpear()
 		Estado.RECARGA:
 			frenar("idle")
+		Estado.HUIR:   # NUEVO N3
+			# Huir es perseguir con la flecha al revés.
+			var lejos = global_position - jugador.global_position
+			ir_a(global_position + lejos)
 	move_and_slide()
-	
+
+
 func decidir():
+	# NUEVO N3. Va primero: le gana a cualquier estado, también al AVISO.
+	if vida <= vida_huida:
+		return Estado.HUIR
 	match estado:
 		Estado.ACERCARSE:
 			if distancia() <= rango_ataque:
@@ -50,7 +61,8 @@ func decidir():
 			if reloj <= 0.001:
 				return Estado.ACERCARSE
 	return estado
-	
+
+
 func cambiar_a(nuevo):
 	estado = nuevo
 	print(name, " -> ", Estado.keys()[estado], " cuadro ",
@@ -61,6 +73,7 @@ func cambiar_a(nuevo):
 	elif estado == Estado.RECARGA:
 		reloj = tiempo_recarga
 
+
 # El aviso le da tiempo al jugador: el golpe mira DÓNDE ESTÁ AHORA.
 func golpear():
 	if distancia() > alcance_golpe:
@@ -69,7 +82,16 @@ func golpear():
 	var salud = jugador.get_node_or_null("Salud")
 	if salud != null:
 		salud.recibir_golpe(danio)
-		
+
+
+# NUEVO N3. Se llama igual que la del Taller 8: el rayo de apuntar.gd ya la sabe usar.
+func recibir_golpe(cuanto):
+	vida = maxi(vida - cuanto, 0)
+	print(name, " vida ", vida)
+	if vida <= 0:
+		print(name, " vencido")
+		queue_free()
+
 
 func ir_a(destino):
 	var hacia = destino - global_position
@@ -80,10 +102,12 @@ func ir_a(destino):
 	basis = Basis.looking_at(dir)
 	anim.play("walk")
 
+
 func frenar(animacion):
 	velocity.x = 0.0
 	velocity.z = 0.0
 	anim.play(animacion)
+
 
 func distancia():
 	var p = jugador.global_position
