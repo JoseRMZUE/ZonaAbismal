@@ -10,11 +10,13 @@ enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA, HUIR }   # NUEVO N3: HUIR
 @export var danio = 1
 @export var vida = 4          # NUEVO N3
 @export var vida_huida = 1    # NUEVO N3
+@export var mezcla = 0.25    # MUTANTE: segundos de transición entre animaciones
 
 var estado = Estado.ACERCARSE
 var reloj = 0.0
 var jugador = null
-@onready var anim = $Modelo/AnimationPlayer
+# MUTANTE: el AnimationPlayer está dentro de Modelo > Mutant Idle.
+@onready var anim = $"Modelo/Mutant Idle/AnimationPlayer"
 
 
 func _ready():
@@ -27,20 +29,25 @@ func _physics_process(delta):
 	var nuevo = decidir()
 	if nuevo != estado:
 		cambiar_a(nuevo)
+	# MUTANTE: animaciones de la biblioteca "verdugo".
 	match estado:
 		Estado.ACERCARSE:
-			ir_a(jugador.global_position)
+			ir_a(jugador.global_position, "verdugo/walk")
 		Estado.AVISO:
-			frenar("interact-right")
+			frenar("verdugo/roaringaviso")
 		Estado.GOLPE:
-			frenar("attack-melee-right")
+			frenar("verdugo/ataque")
 			golpear()
 		Estado.RECARGA:
-			frenar("idle")
+			# MUTANTE: deja terminar la animación del golpe antes de volver a idle.
+			if anim.current_animation == "verdugo/ataque":
+				frenar("verdugo/ataque")
+			else:
+				frenar("verdugo/idle")
 		Estado.HUIR:   # NUEVO N3
 			# Huir es perseguir con la flecha al revés.
 			var lejos = global_position - jugador.global_position
-			ir_a(global_position + lejos)
+			ir_a(global_position + lejos, "verdugo/injuredrun")
 	move_and_slide()
 
 
@@ -93,20 +100,21 @@ func recibir_golpe(cuanto):
 		queue_free()
 
 
-func ir_a(destino):
+# MUTANTE: ahora recibe qué animación poner (caminar o huir).
+func ir_a(destino, animacion):
 	var hacia = destino - global_position
 	hacia.y = 0.0
 	var dir = hacia.normalized()
 	velocity.x = dir.x * rapidez
 	velocity.z = dir.z * rapidez
 	basis = Basis.looking_at(dir)
-	anim.play("walk")
+	anim.play(animacion, mezcla)
 
 
 func frenar(animacion):
 	velocity.x = 0.0
 	velocity.z = 0.0
-	anim.play(animacion)
+	anim.play(animacion, mezcla)
 
 
 func distancia():
