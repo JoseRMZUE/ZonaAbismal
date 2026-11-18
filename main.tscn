@@ -23,6 +23,8 @@
 [ext_resource type="PackedScene" uid="uid://5ltrn66kgvcq" path="res://jefe.tscn" id="23_d13ii"]
 [ext_resource type="Script" uid="uid://ccjdxvnkd4jkq" path="res://puerta.gd" id="24_qsp4k"]
 [ext_resource type="Texture2D" uid="uid://5xdhjbpmhylk" path="res://escenario/linterna.png" id="25_kq58d"]
+[ext_resource type="Script" uid="uid://dbr6tc6fo5cxy" path="res://flujo_zona.gd" id="30_flujo"]
+[ext_resource type="Script" uid="uid://bbbxudatdjqil" path="res://ceniza.gd" id="32_ceniza"]
 
 [sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
 
@@ -39,10 +41,6 @@ ambient_light_color = Color(0.72, 0.6, 1, 1)
 [sub_resource type="CapsuleShape3D" id="Capsula"]
 radius = 0.35
 height = 1.75
-
-[sub_resource type="BoxMesh" id="BoxMesh_u5bk5"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_u5bk5"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_u5bk5"]
 
@@ -273,24 +271,6 @@ transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0
 [node name="Salud" type="Node3D" parent="Personaje" unique_id=267951272]
 script = ExtResource("8_cegan")
 
-[node name="caja1" type="StaticBody3D" parent="." unique_id=1891220961 groups=["interactivos"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.5, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="caja1" unique_id=1266793030]
-mesh = SubResource("BoxMesh_u5bk5")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="caja1" unique_id=213620052]
-shape = SubResource("BoxShape3D_u5bk5")
-
-[node name="caja2" type="StaticBody3D" parent="." unique_id=613964518 groups=["interactivos"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.5, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="caja2" unique_id=1822604530]
-mesh = SubResource("BoxMesh_u5bk5")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="caja2" unique_id=584012779]
-shape = SubResource("BoxShape3D_u5bk5")
-
 [node name="SistemaSol" type="Node" parent="." unique_id=1482822263 node_paths=PackedStringArray("sol", "entorno")]
 script = ExtResource("9_efxa6")
 sol = NodePath("../Sol")
@@ -301,6 +281,7 @@ script = ExtResource("10_dg77c")
 
 [node name="EsferaBrillo" type="MeshInstance3D" parent="." unique_id=268766588]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 1, 0)
+visible = false
 mesh = SubResource("SphereMesh_u5bk5")
 surface_material_override/0 = SubResource("StandardMaterial3D_kddjp")
 
@@ -377,7 +358,10 @@ shape = SubResource("CheckpointForma")
 [node name="Partida" type="Node" parent="." unique_id=1815202420]
 script = ExtResource("16_partida")
 tiempo_limite = 1200.0
-metas = 1
+metas = 2
+gana_con_metas = false
+pausa_al_ganar = false
+reinicio_manual = true
 
 [node name="Reservado" type="Node3D" parent="." unique_id=1698877738]
 visible = false
@@ -412,6 +396,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 7.31, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.7, 5.84, 0)
 script = ExtResource("24_qsp4k")
 destino = NodePath("../LlegadaSalon")
+abierta = false
+aviso_sellada = "Sellada: vence al Hermano y al Verdugo"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Puertas/PuertaAlSalon" unique_id=873268915]
 shape = SubResource("BoxShape3D_jq2sk")
@@ -433,6 +419,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, 16, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.8, 8.81, 0)
 script = ExtResource("24_qsp4k")
 destino = NodePath("../LlegadaBosque")
+abierta = false
+aviso_sellada = "Sellada: derrota al Jefe"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Puertas/PuertaAlBosque" unique_id=1510471770]
 shape = SubResource("BoxShape3D_b1qrp")
@@ -576,3 +564,20 @@ semilla = 5
 
 [node name="Jefe" parent="." unique_id=1263683044 instance=ExtResource("23_d13ii")]
 transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 15, 7.3, 0)
+
+[node name="Flujo" type="Node" parent="." unique_id=1900000001]
+script = ExtResource("30_flujo")
+
+[node name="Rastros" type="Node3D" parent="." unique_id=1900000003]
+
+[node name="RastroA" type="Node3D" parent="Rastros" unique_id=1900000004]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0, 0)
+script = ExtResource("32_ceniza")
+
+[node name="RastroB" type="Node3D" parent="Rastros" unique_id=1900000005]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.5, 7.33, 0)
+script = ExtResource("32_ceniza")
+
+[node name="RastroSalon" type="Node3D" parent="Rastros" unique_id=1900000006]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 7.31, 0)
+script = ExtResource("32_ceniza")

@@ -1,9 +1,10 @@
 extends Area3D
 # Checkpoint entre Sala A y Sala B (plan de trabajo, Sesión 4).
-# Es un Area3D que detecta cuando el Personaje pasa por el arco. Guarda
-# el punto de reaparición en la Salud del jugador (Taller 10, Tarea C de
-# Johan); si la Salud todavía no existe en el repo, solo avisa por
-# consola y no se cae: así cada tarea sigue siendo independiente.
+# Es un Area3D que detecta cuando el Personaje pasa por el arco. Le avisa
+# a la Partida dónde está, y ahí reaparece el jugador al quedarse sin vidas
+# (Sesión 5). Si la Salud tuviera la variable "punto", también la llena, para
+# no romper la idea original del Taller 10.
+var ya_aviso = false
 
 
 func _ready():
@@ -16,4 +17,10 @@ func _al_entrar(cuerpo):
 	var salud = cuerpo.get_node_or_null("Salud")
 	if salud != null and "punto" in salud:
 		salud.punto = global_position
+	var partida = get_tree().get_first_node_in_group("partida")
+	if partida != null:
+		partida.guardar_checkpoint(global_position)
+		if not ya_aviso:
+			get_tree().call_group("hud", "mensaje", "Punto de control guardado", 2.5)
+	ya_aviso = true
 	print("checkpoint: ", name, " cuadro ", Engine.get_physics_frames())
