@@ -3,6 +3,8 @@ extends CharacterBody3D
 enum Estado { PATRULLAR, ESPERAR, PERSEGUIR, ATACAR, BUSCAR }
 
 @export var rapidez = 2.0
+# PARASITE: al perseguir corre (animación run), un poco más rápido.
+@export var rapidez_correr = 3.0
 @export var espera = 1.0
 @export var rango_vision = 6.0
 @export var rango_ataque = 1.2
@@ -15,8 +17,14 @@ enum Estado { PATRULLAR, ESPERAR, PERSEGUIR, ATACAR, BUSCAR }
 @export var danio = 1
 @export var alcance_golpe = 1.6
 @export var alto_golpe = 1.0
-# Segundo de attack-melee-right (dura 0.42 s) en que el brazo llega.
-@export var impacto = 0.2
+# PARASITE: segundo de la animación "ataque" (dura 3.2 s) en que el golpe
+# llega (medido en Godot). El daño se aplica justo ahí.
+@export var impacto = 1.76
+# PARASITE: cuánto de la preparación del golpe se alcanza a ver antes del
+# impacto (el aviso para esquivar o hacer parry).
+@export var aviso_golpe = 0.5
+# PARASITE: segundos de transición entre animaciones.
+@export var mezcla = 0.2
 # Desplazamientos desde donde se colocó el NPC, no posiciones absolutas.
 @export var ruta: Array[Vector3] = [Vector3.ZERO, Vector3(4, 0, 0)]
 
@@ -30,7 +38,8 @@ var busca = 0.0
 var espera_golpe = 0.0
 var golpe_en_curso = false
 var tiempo_golpe = 0.0
-@onready var anim = $Modelo/AnimationPlayer
+# PARASITE: el AnimationPlayer está dentro de Modelo > Idle.
+@onready var anim = $"Modelo/Idle/AnimationPlayer"
 @onready var vision = $Vision
 
 
@@ -56,8 +65,8 @@ func _physics_process(delta):
 		print(name, " -> ", Estado.keys()[estado], " cuadro ",
 			Engine.get_physics_frames(), " a ", snappedf(d, 0.01), " m")
 		if estado == Estado.ATACAR:
-			# Pequeño aviso antes del primer golpe.
-			espera_golpe = 0.3
+			# El primer golpe arranca de una: su preparación ya es el aviso.
+			espera_golpe = 0.0
 			golpe_en_curso = false
 	# 3. ACTUAR
 	match estado:
@@ -66,7 +75,7 @@ func _physics_process(delta):
 		Estado.ESPERAR:
 			frenar()
 		Estado.PERSEGUIR:
-			ir_a(jugador.global_position)
+			ir_a(jugador.global_position, "hermano/run", rapidez_correr)
 		Estado.ATACAR:
 			velocity.x = 0.0
 			velocity.z = 0.0
@@ -74,7 +83,7 @@ func _physics_process(delta):
 			atacar(delta)
 		Estado.BUSCAR:
 			if distancia_a(ultimo_visto) > 0.1:
-				ir_a(ultimo_visto)
+				ir_a(ultimo_visto, "hermano/walk", rapidez)
 			else:
 				frenar()
 	move_and_slide()
@@ -117,10 +126,11 @@ func patrullar():
 		reloj = espera
 		frenar()
 		return
-	ir_a(destino)
+	ir_a(destino, "hermano/walk", rapidez)
 
 
-func ir_a(destino):
+# PARASITE: recibe qué animación poner y a qué velocidad (caminar o correr).
+func ir_a(destino, animacion, velocidad):
 	var hacia = destino - global_position
 	hacia.y = 0.0
 	# Justo encima o debajo: no hay hacia dónde girar (evita el error de
@@ -129,16 +139,16 @@ func ir_a(destino):
 		frenar()
 		return
 	var dir = hacia.normalized()
-	velocity.x = dir.x * rapidez
-	velocity.z = dir.z * rapidez
+	velocity.x = dir.x * velocidad
+	velocity.z = dir.z * velocidad
 	basis = Basis.looking_at(dir)
-	anim.play("walk")
+	anim.play(animacion, mezcla)
 
 
 func frenar():
 	velocity.x = 0.0
 	velocity.z = 0.0
-	anim.play("idle")
+	anim.play("hermano/idle", mezcla)
 
 
 # Distancia en el suelo: si el otro salta, no "se aleja".
@@ -158,23 +168,24 @@ func recibir_golpe(cuanto):
 		queue_free()
 
 
-# Cada cadencia_golpe s arranca un golpe; cuando la animación llega al
-# impacto, recién ahí se le quita vida al jugador.
+# Cada cadencia_golpe s arranca un golpe. La animación arranca aviso_golpe s
+# antes de su impacto, así el daño cae justo cuando el golpe se ve llegar.
 func atacar(delta):
 	espera_golpe = maxf(espera_golpe - delta, 0.0)
 	if not golpe_en_curso and espera_golpe <= 0.001:
 		golpe_en_curso = true
 		tiempo_golpe = 0.0
 		espera_golpe = cadencia_golpe
-		anim.stop()
-		anim.play("attack-melee-right")
+		anim.play("hermano/ataque", mezcla)
+		anim.seek(impacto - aviso_golpe, true)
 	if golpe_en_curso:
 		tiempo_golpe += delta
-		if tiempo_golpe >= impacto:
+		if tiempo_golpe >= aviso_golpe:
 			golpe_en_curso = false
 			golpear()
-	elif not anim.is_playing():
-		anim.play("idle")
+	elif anim.current_animation != "hermano/ataque":
+		# Si la recuperación del golpe ya terminó, queda en idle.
+		anim.play("hermano/idle", mezcla)
 
 
 # El golpe mira dónde está el jugador AHORA: si se alejó, saltó o está en

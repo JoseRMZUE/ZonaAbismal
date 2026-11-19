@@ -12,7 +12,7 @@
 [ext_resource type="Script" uid="uid://b348la4l00jdm" path="res://salud.gd" id="8_cegan"]
 [ext_resource type="Script" uid="uid://bxa6xd257qjgl" path="res://sistema_sol.gd" id="9_efxa6"]
 [ext_resource type="Script" uid="uid://nn8eqb0lgaie" path="res://ciclo_dia.gd" id="10_dg77c"]
-[ext_resource type="PackedScene" path="res://hermano.tscn" id="11_hermano"]
+[ext_resource type="PackedScene" uid="uid://cspsuuredavrp" path="res://hermano.tscn" id="11_hermano"]
 [ext_resource type="PackedScene" uid="uid://cpw8utqxde2rj" path="res://verdugo.tscn" id="12_dg77c"]
 [ext_resource type="Script" uid="uid://cwnnoif2h8cls" path="res://disparador.gd" id="13_ycdy4"]
 [ext_resource type="Script" uid="uid://c5wnqdft7ue8r" path="res://sistema_eventos.gd" id="14_w48qg"]

@@ -1,23 +1,23 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cspsuuredavrp"]
 
-[ext_resource type="Script" path="res://hermano.gd" id="1_hermano"]
-[ext_resource type="PackedScene" uid="uid://52giffn4ww16" path="res://personaje/character-male-d.glb" id="2_modelo"]
+[ext_resource type="Script" uid="uid://bfujvyneh5wkj" path="res://hermano.gd" id="1_hermano"]
+[ext_resource type="PackedScene" uid="uid://76r0fd8foxgr" path="res://hermano_mixamo.tscn" id="2_cf8ef"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hermano"]
 radius = 0.35
 height = 1.75
 
-[node name="Hermano" type="CharacterBody3D"]
+[node name="Hermano" type="CharacterBody3D" unique_id=716452855]
 axis_lock_linear_z = true
 script = ExtResource("1_hermano")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2122506410]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
 shape = SubResource("CapsuleShape3D_hermano")
 
-[node name="Modelo" parent="." instance=ExtResource("2_modelo")]
-transform = Transform3D(-2.6, 0, 0, 0, 2.6, 0, 0, 0, -2.6, 0, 0, 0)
-
-[node name="Vision" type="RayCast3D" parent="."]
+[node name="Vision" type="RayCast3D" parent="." unique_id=1752524767]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 target_position = Vector3(0, 0, -6)
+
+[node name="Modelo" parent="." unique_id=1471620227 instance=ExtResource("2_cf8ef")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
