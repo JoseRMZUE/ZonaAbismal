@@ -1,5 +1,9 @@
 extends CharacterBody3D
 
+# DESTELLO: el Verdugo también es un "disparador" del Taller 4: al avisar el
+# golpe emite esta señal y SistemaEventos (Sala B) hace el destello de luz.
+signal evento(posicion: Vector3)
+
 enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA, HUIR, ATURDIDO }   # PARRY: ATURDIDO
 
 @export var rapidez = 2.0
@@ -26,6 +30,13 @@ var jugador = null
 var parado = false            # PARRY: el último golpe fue desviado
 # MUTANTE: el AnimationPlayer está dentro de Modelo > Mutant Idle.
 @onready var anim = $"Modelo/Mutant Idle/AnimationPlayer"
+# DESTELLO: el nodo hijo con control_efectos.gd (si no está, no pasa nada).
+@onready var efectos = get_node_or_null("ControlEfectos")
+
+
+func _enter_tree():
+	# DESTELLO: así SistemaEventos lo encuentra igual que a un Disparador.
+	add_to_group("disparadores")
 
 
 func _ready():
@@ -45,6 +56,9 @@ func _physics_process(delta):
 		Estado.AVISO:
 			# El brazo ya viene bajando (lo arranca cambiar_a).
 			frenar("verdugo/ataque")
+			# DESTELLO: brilla en rojo todo el aviso (0.3 s del concepto).
+			if efectos != null:
+				efectos.mantener(efectos.color_aviso)
 		Estado.GOLPE:
 			# La mano llega justo ahora: aquí se quita la vida (o se desvía).
 			frenar("verdugo/ataque")
@@ -106,6 +120,8 @@ func cambiar_a(nuevo):
 		# llegue (impacto) justo cuando termine el aviso y empiece GOLPE.
 		anim.play("verdugo/ataque", mezcla)
 		anim.seek(impacto - tiempo_aviso, true)
+		# DESTELLO: la luz roja de la sala parpadea donde está el Verdugo.
+		evento.emit(global_position)
 	elif estado == Estado.RECARGA:
 		reloj = tiempo_recarga
 	elif estado == Estado.ATURDIDO:   # PARRY
@@ -137,6 +153,9 @@ func golpear():
 func recibir_golpe(cuanto):
 	vida = maxi(vida - cuanto, 0)
 	print(name, " vida ", vida)
+	# DESTELLO: pulso blanco cuando le pegan.
+	if efectos != null:
+		efectos.destello(efectos.color_golpe)
 	if vida <= 0:
 		print(name, " vencido")
 		queue_free()
