@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://c8r777i2eolm3" path="res://verdugo.gd" id="1_k5cyl"]
 [ext_resource type="PackedScene" uid="uid://cro3cb682g1mj" path="res://verdugomixamo.tscn" id="2_k5cyl"]
+[ext_resource type="Script" uid="uid://s383gb1mp2ts" path="res://control_efectos.gd" id="3_4ttcm"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4kxuq"]
 
@@ -15,3 +16,6 @@ shape = SubResource("CapsuleShape3D_4kxuq")
 
 [node name="Modelo" parent="." unique_id=1551309490 instance=ExtResource("2_k5cyl")]
 transform = Transform3D(-1.2, 0, -1.8119498e-07, 0, 1.2, 0, 1.8119498e-07, 0, -1.2, 0, 0, 0)
+
+[node name="ControlEfectos" type="Node" parent="." unique_id=405661321]
+script = ExtResource("3_4ttcm")
