@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA, HUIR }   # NUEVO N3: HUIR
+enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA, HUIR, ATURDIDO }   # PARRY: ATURDIDO
 
 @export var rapidez = 2.0
 @export var rango_ataque = 1.0
@@ -17,10 +17,13 @@ enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA, HUIR }   # NUEVO N3: HUIR
 # Diferencia de altura máxima para atacar y pegar (m): si el jugador está
 # en otra plataforma o saltó por encima del golpe, no le pega.
 @export var alto_golpe = 1.0
+# PARRY: cuánto queda aturdido si el jugador desvía el golpe (concepto: 1.5 s).
+@export var tiempo_aturdido = 1.5
 
 var estado = Estado.ACERCARSE
 var reloj = 0.0
 var jugador = null
+var parado = false            # PARRY: el último golpe fue desviado
 # MUTANTE: el AnimationPlayer está dentro de Modelo > Mutant Idle.
 @onready var anim = $"Modelo/Mutant Idle/AnimationPlayer"
 
@@ -43,7 +46,7 @@ func _physics_process(delta):
 			# El brazo ya viene bajando (lo arranca cambiar_a).
 			frenar("verdugo/ataque")
 		Estado.GOLPE:
-			# La mano llega justo ahora: aquí se quita la vida.
+			# La mano llega justo ahora: aquí se quita la vida (o se desvía).
 			frenar("verdugo/ataque")
 			golpear()
 		Estado.RECARGA:
@@ -56,6 +59,8 @@ func _physics_process(delta):
 			# Huir es perseguir con la flecha al revés.
 			var lejos = global_position - jugador.global_position
 			ir_a(global_position + lejos, "verdugo/injuredrun")
+		Estado.ATURDIDO:   # PARRY
+			frenar("verdugo/stunned")
 	move_and_slide()
 
 
@@ -65,7 +70,7 @@ func decidir():
 		return Estado.HUIR
 	match estado:
 		Estado.ACERCARSE:
-				# Cerca en el piso Y en el mismo nivel: si está en otra
+			# Cerca en el piso Y en el mismo nivel: si está en otra
 			# plataforma, no empieza a atacar.
 			if distancia() <= rango_ataque and altura() <= alto_golpe:
 				return Estado.AVISO
@@ -73,6 +78,9 @@ func decidir():
 			if reloj <= 0.001:
 				return Estado.GOLPE
 		Estado.GOLPE:
+			# PARRY: si el jugador desvió el golpe, queda aturdido.
+			if parado:
+				return Estado.ATURDIDO
 			return Estado.RECARGA
 		Estado.RECARGA:
 			if reloj <= 0.001:
@@ -81,6 +89,9 @@ func decidir():
 			# Si llega aquí es porque recuperó vida (al reaparecer el jugador,
 			# la Partida se la devuelve): deja de huir y vuelve a pelear.
 			return Estado.ACERCARSE
+		Estado.ATURDIDO:   # PARRY
+			if reloj <= 0.001:
+				return Estado.ACERCARSE
 	return estado
 
 
@@ -97,6 +108,9 @@ func cambiar_a(nuevo):
 		anim.seek(impacto - tiempo_aviso, true)
 	elif estado == Estado.RECARGA:
 		reloj = tiempo_recarga
+	elif estado == Estado.ATURDIDO:   # PARRY
+		reloj = tiempo_aturdido
+		parado = false
 
 
 # El aviso le da tiempo al jugador: el golpe mira DÓNDE ESTÁ AHORA,
@@ -105,6 +119,14 @@ func golpear():
 	if distancia() > alcance_golpe or altura() > alto_golpe:
 		print(name, " falla a ", snappedf(distancia(), 0.01), " m (altura ",
 			snappedf(altura(), 0.01), " m)")
+		return
+	# PARRY: si el parry del jugador está activo justo cuando llega la mano,
+	# el golpe se desvía: no quita vida y el Verdugo queda aturdido.
+	var parry = jugador.get_node_or_null("Parry")
+	if parry != null and parry.has_method("esta_activa") and parry.esta_activa():
+		print(name, " golpe desviado por el parry")
+		parado = true
+		parry.exito(tiempo_aturdido)
 		return
 	var salud = jugador.get_node_or_null("Salud")
 	if salud != null:

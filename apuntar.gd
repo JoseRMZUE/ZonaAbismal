@@ -10,9 +10,16 @@ extends Node
 
 var origen = Vector3.ZERO
 var espera = 0.0
+var reloj_doble = 0.0   # PARRY: cuánto le queda al doble daño tras un parry
 
 func _physics_process(delta):
 	espera -= delta
+	# PARRY: el doble daño dura lo mismo que el aturdido del enemigo.
+	if tras_parry and reloj_doble > 0.0:
+		reloj_doble -= delta
+		if reloj_doble <= 0.0:
+			tras_parry = false
+			print("se acabó el doble daño")
 	if Input.is_action_pressed(tecla) and espera <= 0.001:
 		espera = cadencia
 		var golpe = lanzar_rayo()
@@ -25,7 +32,17 @@ func _physics_process(delta):
 			var danio_final = danio
 			if tras_parry:
 				danio_final = danio * 2
+				# PARRY: el doble es para UN golpe; después vuelve a lo normal.
+				tras_parry = false
+				reloj_doble = 0.0
+				print("doble daño tras parry: ", danio_final)
 			golpe.collider.recibir_golpe(danio_final)
+
+
+# PARRY: la llama parry.gd cuando un parry sale bien.
+func activar_doble(segundos):
+	tras_parry = true
+	reloj_doble = segundos
 
 func lanzar_rayo():
 	var hacia

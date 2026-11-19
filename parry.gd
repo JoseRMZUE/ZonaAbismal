@@ -50,3 +50,17 @@ func terminar():
 	print("termina: ", tecla)
 	pj.multiplicador = 1.0
 	pj.accion = ""
+
+
+# PARRY: los enemigos preguntan si el parry está activo justo cuando les llega el golpe.
+func esta_activa():
+	return estado == Estado.ACTIVA
+
+
+# PARRY: un enemigo avisa que su golpe fue desviado. Prende el doble daño en
+# apuntar.gd (antes era una casilla manual del Inspector) mientras dure el aturdido.
+func exito(segundos):
+	print("parry exitoso: doble daño por ", segundos, " s")
+	var apuntar = pj.get_node_or_null("Apuntar")
+	if apuntar != null and apuntar.has_method("activar_doble"):
+		apuntar.activar_doble(segundos)
