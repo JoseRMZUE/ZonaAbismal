@@ -9,6 +9,14 @@ enum Estado { PATRULLAR, ESPERAR, PERSEGUIR, ATACAR, BUSCAR }
 @export var rango_perder = 8.0
 @export var tiempo_busqueda = 2.0
 @export var vida = 4
+# Golpe real (agregado por el equipo): ataca cada 1.5 s como el Acólito
+# del concepto y pega solo cuando el brazo llega, no al tocarlo.
+@export var cadencia_golpe = 1.5
+@export var danio = 1
+@export var alcance_golpe = 1.6
+@export var alto_golpe = 1.0
+# Segundo de attack-melee-right (dura 0.42 s) en que el brazo llega.
+@export var impacto = 0.2
 # Desplazamientos desde donde se colocó el NPC, no posiciones absolutas.
 @export var ruta: Array[Vector3] = [Vector3.ZERO, Vector3(4, 0, 0)]
 
@@ -19,6 +27,9 @@ var reloj = 0.0
 var jugador = null
 var ultimo_visto = Vector3.ZERO
 var busca = 0.0
+var espera_golpe = 0.0
+var golpe_en_curso = false
+var tiempo_golpe = 0.0
 @onready var anim = $Modelo/AnimationPlayer
 @onready var vision = $Vision
 
@@ -44,6 +55,10 @@ func _physics_process(delta):
 		estado = nuevo
 		print(name, " -> ", Estado.keys()[estado], " cuadro ",
 			Engine.get_physics_frames(), " a ", snappedf(d, 0.01), " m")
+		if estado == Estado.ATACAR:
+			# Pequeño aviso antes del primer golpe.
+			espera_golpe = 0.3
+			golpe_en_curso = false
 	# 3. ACTUAR
 	match estado:
 		Estado.PATRULLAR:
@@ -53,8 +68,10 @@ func _physics_process(delta):
 		Estado.PERSEGUIR:
 			ir_a(jugador.global_position)
 		Estado.ATACAR:
-			frenar()
-			anim.play("attack-melee-right")
+			velocity.x = 0.0
+			velocity.z = 0.0
+			mirar_a(jugador.global_position)
+			atacar(delta)
 		Estado.BUSCAR:
 			if distancia_a(ultimo_visto) > 0.1:
 				ir_a(ultimo_visto)
@@ -106,6 +123,11 @@ func patrullar():
 func ir_a(destino):
 	var hacia = destino - global_position
 	hacia.y = 0.0
+	# Justo encima o debajo: no hay hacia dónde girar (evita el error de
+	# looking_at con dirección cero).
+	if hacia.length() < 0.05:
+		frenar()
+		return
 	var dir = hacia.normalized()
 	velocity.x = dir.x * rapidez
 	velocity.z = dir.z * rapidez
@@ -128,9 +150,52 @@ func distancia_a(p):
 # Agregado por el equipo (no lo da el esqueleto del taller): Hermano
 # necesita vida y recibir_golpe para ser el enemigo real de Sala A,
 # copiando el mismo patrón que enemigo.gd (Taller 7).
-func recibir_golpe(danio):
-	vida -= danio
+func recibir_golpe(cuanto):
+	vida -= cuanto
 	print(name, ": vida ", vida)
 	if vida <= 0:
 		print(name, " destruida")
 		queue_free()
+
+
+# Cada cadencia_golpe s arranca un golpe; cuando la animación llega al
+# impacto, recién ahí se le quita vida al jugador.
+func atacar(delta):
+	espera_golpe = maxf(espera_golpe - delta, 0.0)
+	if not golpe_en_curso and espera_golpe <= 0.001:
+		golpe_en_curso = true
+		tiempo_golpe = 0.0
+		espera_golpe = cadencia_golpe
+		anim.stop()
+		anim.play("attack-melee-right")
+	if golpe_en_curso:
+		tiempo_golpe += delta
+		if tiempo_golpe >= impacto:
+			golpe_en_curso = false
+			golpear()
+	elif not anim.is_playing():
+		anim.play("idle")
+
+
+# El golpe mira dónde está el jugador AHORA: si se alejó, saltó o está en
+# otra plataforma, falla. Si el parry está activo, lo desvía.
+func golpear():
+	var dif = jugador.global_position - global_position
+	if Vector2(dif.x, dif.z).length() > alcance_golpe or absf(dif.y) > alto_golpe:
+		print(name, " falla el golpe")
+		return
+	var parry = jugador.get_node_or_null("Parry")
+	if parry != null and parry.has_method("esta_activa") and parry.esta_activa():
+		print(name, " golpe desviado por el parry")
+		return
+	var salud = jugador.get_node_or_null("Salud")
+	if salud != null:
+		salud.recibir_golpe(danio)
+
+
+# Gira hacia el jugador mientras ataca, para no pegarle de espaldas.
+func mirar_a(p):
+	var hacia = p - global_position
+	hacia.y = 0.0
+	if hacia.length() > 0.05:
+		basis = Basis.looking_at(hacia.normalized())
