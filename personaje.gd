@@ -32,6 +32,15 @@ const RUIDO = [0.0, 2.0, 0.0]
 @export var dura_golpeado = 0.5
 # Cuánto dura "has caído" para que alcance a verse la animación de morir.
 @export var espera_muerte = 3.2
+# ---- Color del modelo ------------------------------------------------------
+# El acero del paladín es gris, pero en el templo oscuro se veía casi negro.
+# El shader armadura_plateada.gdshader lo vuelve plata de armadura (el dorado,
+# la tela y la piel conservan su color). Si claridad = 0 no se aplica nada.
+@export var claridad = 2.7          # cuánto se aclara el metal
+@export var contraste = 0.65        # más bajo = menos grafito, más plata
+@export var brillo_propio = 0.28    # luz propia para que no se apague
+@export var borde = 1.0             # reflejo en el contorno, como metal pulido
+@export var pulido = 0.7            # 0 = mate, 1 = muy brillante
 @onready var anim = $Modelo/idle/AnimationPlayer
 @onready var modelo = $Modelo
 
@@ -91,7 +100,32 @@ func _ready():
 	floor_max_angle = deg_to_rad(75.0)
 	floor_snap_length = 0.35
 	rot_antes = rotation.y
+	_aclarar_modelo()
 	call_deferred("_conectar")
+
+
+# Cambia el material de cada malla por el de armadura plateada (el original
+# no se modifica: solo se pone encima).
+func _aclarar_modelo():
+	if claridad <= 0.0:
+		return
+	var sombreado = load("res://personaje/armadura_plateada.gdshader") as Shader
+	if sombreado == null:
+		return
+	for malla in modelo.find_children("*", "MeshInstance3D", true, false):
+		for i in malla.mesh.get_surface_count():
+			var original = malla.get_active_material(i)
+			if not (original is StandardMaterial3D):
+				continue
+			var m = ShaderMaterial.new()
+			m.shader = sombreado
+			m.set_shader_parameter("textura", original.albedo_texture)
+			m.set_shader_parameter("claridad", claridad)
+			m.set_shader_parameter("contraste", contraste)
+			m.set_shader_parameter("brillo_propio", brillo_propio)
+			m.set_shader_parameter("borde", borde)
+			m.set_shader_parameter("pulido", pulido)
+			malla.set_surface_override_material(i, m)
 
 
 # Busca a los compañeros (Salud, Parry, Apuntar, Partida) sin tocar sus archivos:
