@@ -4,7 +4,6 @@
 [ext_resource type="Script" uid="uid://bbpwkx23dq8d2" path="res://camera_sigue.gd" id="1_lquwl"]
 [ext_resource type="Script" uid="uid://bj0372xnq02wk" path="res://personaje.gd" id="1_pj"]
 [ext_resource type="Script" uid="uid://s3lbbb62hkke" path="res://parry.gd" id="3_1bvp3"]
-[ext_resource type="PackedScene" uid="uid://6f3ptc8ip8ap" path="res://enemigo.tscn" id="3_h2yge"]
 [ext_resource type="Script" uid="uid://b4bnds1lpjk3w" path="res://apuntar.gd" id="5_7mycd"]
 [ext_resource type="Script" uid="uid://dt1qstdvdk8dt" path="res://interactuar.gd" id="6_272bh"]
 [ext_resource type="Script" uid="uid://b5mu8k1s52ry7" path="res://luz_jugador.gd" id="7_4c57u"]
@@ -363,14 +362,6 @@ metas = 2
 gana_con_metas = false
 pausa_al_ganar = false
 reinicio_manual = true
-
-[node name="Reservado" type="Node3D" parent="." unique_id=1698877738]
-visible = false
-
-[node name="Enemigo" parent="Reservado" unique_id=1633887769 node_paths=PackedStringArray("objetivo") instance=ExtResource("3_h2yge")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0, 0)
-visible = false
-objetivo = NodePath("../../Personaje")
 
 [node name="LuzFrontal" type="DirectionalLight3D" parent="." unique_id=972170909]
 transform = Transform3D(1, 0, 0, 0, 0.9396926, 0.34202012, 0, -0.34202012, 0.9396926, 0, 0, 0)
