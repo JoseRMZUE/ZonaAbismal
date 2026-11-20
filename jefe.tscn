@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://5ltrn66kgvcq"]
 
 [ext_resource type="Script" uid="uid://baun2vlfqeopc" path="res://jefe.gd" id="1_2w8do"]
-[ext_resource type="PackedScene" uid="uid://bals8mej4uv6r" path="res://Jefe/jefe_zombie.glb" id="1_4euyg"]
+[ext_resource type="PackedScene" uid="uid://bkf1kw3qn1s7m" path="res://Jefe/CreaturePack/Mutant.fbx" id="1_4euyg"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_u5bk5"]
 height = 1.9
