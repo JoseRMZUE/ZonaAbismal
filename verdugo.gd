@@ -104,6 +104,10 @@ func _physics_process(delta):
 			velocity.z = 0.0
 			if reloj <= 0.001 and not is_queued_for_deletion():
 				queue_free()
+	# Un cuerpo caído ya en el piso no se mueve: si siguiera deslizándose, el
+	# jugador que camina contra él lo arrastraría.
+	if estado == Estado.MUERTO and is_on_floor():
+		return
 	move_and_slide()
 
 
