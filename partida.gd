@@ -1,22 +1,10 @@
 extends Node
-# Taller 10 · Tarea A · Barreto Ramírez José David
-# Receta P (la partida): JUGANDO / GANO / PERDIO, metas, pausa y reinicio.
-# Nuestro juego (documento de concepto): partida de 15-20 min, sin game
-# over; el tiempo límite de 1200 s es solo el techo.
-#
-# Sesión 5 (plan de trabajo): este mismo nodo ahora también
-#   - guarda el checkpoint y, al llegar la vida a 0, hace REAPARECER al
-#     jugador ahí (vidas en 3, fervor en 0) en vez de recargar la escena;
-#   - lleva los puntos y la CENIZA: la muerte deja los puntos en el lugar
-#     exacto; si se muere otra vez sin recogerlos, se pierden para siempre;
-#   - avisa cuando se cumplen las metas (los dos guardianes caídos) y la
-#     victoria llega solo al vencer al jefe (la dispara flujo_zona.gd).
 
 signal metas_cumplidas
 signal puntos_cambiaron
 signal jugador_cayo(hay_ceniza)
 signal jugador_revivio
-signal ceniza_recuperada(cantidad)
+signal ceniza_recuperada(vida_recuperada, puntos_recibidos)
 signal ceniza_perdida
 signal zona_terminada
 
@@ -63,6 +51,8 @@ var puntos_totales = 0            # todo lo ganado en la partida (para el report
 var muertes = 0
 var cenizas_perdidas = 0
 var ceniza_actual = null          # el montículo que espera en el mapa (o null)
+var cenizas_activas: Array[Node3D] = []
+var ceniza_muerte_actual: Node3D = null
 var cayendo = false               # entre "se le acabó la vida" y "reaparece"
 var fin_zona = false
 var tiempo_ganado = 0.0
@@ -194,14 +184,42 @@ func es_la_peor():
 	return cenizas_perdidas >= perdidas_para_peor
 
 
-# La llama ceniza.gd cuando el jugador mantiene E sobre el montículo.
-func recuperar_ceniza(nodo, cantidad):
-	if nodo == ceniza_actual:
-		ceniza_actual = null
-	puntos += cantidad
-	print("ceniza recuperada: +", cantidad, " · llevas ", puntos)
-	ceniza_recuperada.emit(cantidad)
+# La llama ceniza.gd al completar la interacción. La ceniza cura y da puntos.
+func recuperar_ceniza(nodo, cantidad, vida_recuperada = 1) -> bool:
+	if salud == null or not is_instance_valid(salud):
+		return false
+	var vida_antes: int = salud.vida
+	salud.vida = mini(salud.vida + maxi(int(vida_recuperada), 0), vida_maxima)
+	var recuperada: int = salud.vida - vida_antes
+	var puntos_ceniza: int = maxi(int(cantidad), 0)
+	puntos += puntos_ceniza
+	if not bool(nodo.get("es_ceniza_muerte")):
+		puntos_totales += puntos_ceniza
 	puntos_cambiaron.emit()
+	cenizas_activas.erase(nodo)
+	if nodo == ceniza_muerte_actual:
+		ceniza_muerte_actual = null
+	_elegir_ceniza_actual()
+	print("ceniza absorbida: +", recuperada, " vida y +", puntos_ceniza,
+		" puntos · vida actual ", salud.vida)
+	ceniza_recuperada.emit(recuperada, puntos_ceniza)
+	return true
+
+
+func dejar_ceniza_enemigo(lugar: Vector3, cantidad: int = 20, vida_recuperada: int = 1):
+	var nodo = _crear_ceniza(lugar, cantidad, false, vida_recuperada)
+	cenizas_activas.append(nodo)
+	ceniza_actual = nodo
+	print("un enemigo dejó ceniza curativa en ", lugar.snapped(Vector3.ONE * 0.01))
+	return nodo
+
+
+func _elegir_ceniza_actual() -> void:
+	ceniza_actual = null
+	for nodo in cenizas_activas:
+		if is_instance_valid(nodo) and not nodo.usada and not nodo.is_queued_for_deletion():
+			ceniza_actual = nodo
+			return
 
 
 # ---------------------------------------------------------------------------
@@ -226,24 +244,36 @@ func _morir():
 	muertes += 1
 	var lugar = jugador.global_position
 	print("el jugador cayó en ", lugar.snappedf(0.01), " (muerte ", muertes, ")")
-	# 1. La ceniza que seguía esperando se pierde para siempre.
-	var perdio = false
-	if ceniza_actual != null and is_instance_valid(ceniza_actual):
-		ceniza_actual.desvanecer()
+	# Si aún no recuperaba su ceniza de una caída anterior, se pierde.
+	if ceniza_muerte_actual != null and is_instance_valid(ceniza_muerte_actual):
+		var ceniza_perdida_actual: Node3D = ceniza_muerte_actual
+		if ceniza_perdida_actual.has_method("eliminar_inmediatamente"):
+			ceniza_perdida_actual.eliminar_inmediatamente()
+		else:
+			ceniza_perdida_actual.remove_from_group("interactivos")
+			ceniza_perdida_actual.hide()
+			ceniza_perdida_actual.queue_free()
+		cenizas_activas.erase(ceniza_perdida_actual)
+		if ceniza_actual == ceniza_perdida_actual:
+			ceniza_actual = null
 		cenizas_perdidas += 1
-		perdio = true
-		print("ceniza perdida para siempre (", cenizas_perdidas, ")")
-	ceniza_actual = null
-	# 2. Lo que llevaba se queda en el lugar exacto de la muerte.
+		ceniza_perdida.emit()
+		print("ceniza de muerte perdida (", cenizas_perdidas, ")")
+	ceniza_muerte_actual = null
+	# Lo que llevaba el jugador queda en el punto de caída. Las cenizas de
+	# enemigos derrotados permanecen en el mundo.
 	var hay = false
 	if puntos > 0:
-		ceniza_actual = _crear_ceniza(lugar, puntos)
+		# La ceniza de la caída solo devuelve los puntos: no cura.
+		ceniza_muerte_actual = _crear_ceniza(lugar, puntos, true, 0)
+		cenizas_activas.append(ceniza_muerte_actual)
+		ceniza_actual = ceniza_muerte_actual
 		hay = true
 		puntos = 0
 		puntos_cambiaron.emit()
+	else:
+		_elegir_ceniza_actual()
 	jugador_cayo.emit(hay)
-	if perdio:
-		ceniza_perdida.emit()
 	# 3. El jugador queda quieto mientras se ve "has caído".
 	jugador.process_mode = Node.PROCESS_MODE_DISABLED
 	jugador.velocity = Vector3.ZERO
@@ -251,10 +281,12 @@ func _morir():
 	_revivir()
 
 
-func _crear_ceniza(lugar, cantidad):
+func _crear_ceniza(lugar, cantidad, es_muerte = false, vida_recuperada = 1):
 	var nodo = Node3D.new()
 	nodo.set_script(load("res://ceniza.gd"))
-	nodo.cantidad = cantidad
+	nodo.cantidad = maxi(int(cantidad), 0)
+	nodo.vida_recuperada = maxi(int(vida_recuperada), 0)
+	nodo.es_ceniza_muerte = es_muerte
 	nodo.es_rastro = false
 	get_parent().add_child(nodo)
 	nodo.global_position = lugar

@@ -1,13 +1,7 @@
 extends Node
-# Nodo hijo que se le cuelga a un enemigo en main.tscn, sin tocar el
-# script del enemigo (regla del taller: nadie edita el archivo de otro).
-# Cuando el enemigo muere (queue_free), le avisa una meta a la Partida y
-# le entrega los puntos que vale (concepto: Acólito = 10).
-#
-# Sesión 5: además lo registra en la Partida para que, si el jugador cae y
-# reaparece, el enemigo vivo vuelva a su sitio con la vida completa.
 
 @export var puntos = 10
+@export var vida_ceniza = 1
 
 var arbol = null
 
@@ -32,5 +26,12 @@ func _al_morir():
 	if arbol == null or not get_parent().is_queued_for_deletion():
 		return
 	var partida = arbol.get_first_node_in_group("partida")
-	if partida != null and partida.is_inside_tree():
+	if partida != null and partida.is_inside_tree() and partida.estado == partida.Estado.JUGANDO:
+		# Solo los enemigos derrotados dejan ceniza; se crea antes de que el
+		# enemigo desaparezca para conservar su última posición.
+		partida.dejar_ceniza_enemigo(
+			get_parent().global_position,
+			partida.puntos_coleccionable,
+			vida_ceniza
+		)
 		partida.avisar_meta(puntos)

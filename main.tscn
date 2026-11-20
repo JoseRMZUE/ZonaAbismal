@@ -24,7 +24,6 @@
 [ext_resource type="Texture2D" uid="uid://5xdhjbpmhylk" path="res://escenario/linterna.png" id="25_kq58d"]
 [ext_resource type="Script" uid="uid://dbr6tc6fo5cxy" path="res://flujo_zona.gd" id="30_flujo"]
 [ext_resource type="Script" uid="uid://d4jngrur1mcuo" path="res://hud.gd" id="31_hud"]
-[ext_resource type="Script" uid="uid://bbbxudatdjqil" path="res://ceniza.gd" id="32_ceniza"]
 
 [sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
 
@@ -564,15 +563,3 @@ script = ExtResource("30_flujo")
 script = ExtResource("31_hud")
 
 [node name="Rastros" type="Node3D" parent="." unique_id=1900000003]
-
-[node name="RastroA" type="Node3D" parent="Rastros" unique_id=1900000004]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0, 0)
-script = ExtResource("32_ceniza")
-
-[node name="RastroB" type="Node3D" parent="Rastros" unique_id=1900000005]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.5, 7.33, 0)
-script = ExtResource("32_ceniza")
-
-[node name="RastroSalon" type="Node3D" parent="Rastros" unique_id=1900000006]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 7.31, 0)
-script = ExtResource("32_ceniza")

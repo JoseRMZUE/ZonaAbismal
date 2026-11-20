@@ -1,24 +1,16 @@
 extends Node3D
-# La ceniza real (plan de trabajo, Sesión 5 · parte de Johan + interactuar.gd).
-#
-# Un montículo de polvo dorado que se queda en el suelo. Se recoge igual que
-# lo que ya hacía interactuar.gd con las cajas de prueba: estar cerca y
-# mantener la tecla E. Hay dos clases:
-#   - la ceniza de la MUERTE (es_rastro = false): lleva los puntos que el
-#     jugador tenía al caer; Partida la crea sola en el lugar exacto.
-#   - el RASTRO de otro penitente (es_rastro = true): un coleccionable fijo
-#     del mapa que da 20 puntos (concepto: "rastros de ceniza de otros
-#     penitentes"). Se coloca a mano en main.tscn.
-# Todo se dibuja con código: no necesita escena ni imágenes.
 
-@export var cantidad = 20
-@export var es_rastro = true
+@export var cantidad: int = 20
+@export var vida_recuperada: int = 1
+@export var es_rastro: bool = false
+@export var es_ceniza_muerte: bool = false
 
 var usada = false
 var luz = null
 var punto = null
 var polvo = null
 var t = 0.0
+var tween_desvanecer: Tween
 
 
 func _ready():
@@ -113,12 +105,12 @@ func usar():
 	if usada:
 		return
 	var partida = get_tree().get_first_node_in_group("partida")
-	if partida != null:
-		if es_rastro:
-			partida.sumar_puntos(cantidad, "rastro de ceniza")
-		else:
-			partida.recuperar_ceniza(self, cantidad)
-	desvanecer()
+	if partida == null or not partida.has_method("recuperar_ceniza"):
+		return
+	if partida.recuperar_ceniza(self, cantidad, vida_recuperada):
+		desvanecer()
+	else:
+		get_tree().call_group("hud", "mensaje", "No se pudo absorber la ceniza", 2.0)
 
 
 # Se recoge o se pierde: en los dos casos el montículo se apaga y se va.
@@ -127,8 +119,21 @@ func desvanecer():
 		return
 	usada = true
 	remove_from_group("interactivos")
-	var tw = create_tween()
-	tw.tween_property(self, "scale", Vector3(0.01, 0.01, 0.01), 0.5)
+	tween_desvanecer = create_tween()
+	tween_desvanecer.tween_property(self, "scale", Vector3(0.01, 0.01, 0.01), 0.5)
 	if luz != null:
-		tw.parallel().tween_property(luz, "light_energy", 0.0, 0.5)
-	tw.tween_callback(queue_free)
+		tween_desvanecer.parallel().tween_property(luz, "light_energy", 0.0, 0.5)
+	tween_desvanecer.tween_callback(queue_free)
+
+
+func eliminar_inmediatamente() -> void:
+	# Se usa si el jugador vuelve a morir antes de recuperar su ceniza anterior.
+	# No depende de que termine un tween: no puede quedar un resto visible ni interactivo.
+	usada = true
+	remove_from_group("interactivos")
+	if tween_desvanecer != null and tween_desvanecer.is_running():
+		tween_desvanecer.kill()
+	hide()
+	set_process(false)
+	set_physics_process(false)
+	queue_free()

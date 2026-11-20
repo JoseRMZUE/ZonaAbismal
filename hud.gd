@@ -1,19 +1,4 @@
 extends CanvasLayer
-# HUD de Zona Abismal (plan de trabajo, Sesión 5 · parte de Johan).
-# El estilo sale de la imagen de referencia del equipo: barra de pixel art con
-# marco de hueso, relleno rojo, ornamento de alas a la izquierda y el número
-# ("3/3", "100/100") en una placa oscura debajo. Todo se dibuja con código:
-# no necesita imágenes ni escenas, solo este nodo en main.tscn.
-#
-#   VIDA     barra roja partida en 3 (una por vida), lee Salud.vida
-#   FERVOR   barra violeta, lee Parry.fervor; pulsa al llegar a 100
-#   CENIZA   los puntos que lleva el jugador; flecha hacia la ceniza caída
-#   Mensajes, objetivo, aviso de "Mantén E", pantalla de caída, de victoria
-#   y de fin de la zona (ENTER para volver a empezar).
-#
-# Los demás scripts le hablan por grupo, sin conocerlo:
-#   get_tree().call_group("hud", "mensaje", "texto", segundos)
-#   get_tree().call_group("hud", "poner_objetivo", "texto")
 
 const HUESO = Color("#E8E1D3")
 const HUESO_SOMBRA = Color("#8E8078")
@@ -118,12 +103,16 @@ func _al_caer(hay_ceniza):
 
 func _al_revivir():
 	fade_objetivo = 0.0
-	if cayo_con_ceniza:
-		mensaje("Tu ceniza quedó donde caíste: vuelve por ella", 4.0)
+	mensaje("Has vuelto al checkpoint", 2.5)
 
 
-func _ceniza_recuperada(cantidad):
-	mensaje("Ceniza recuperada  +" + str(cantidad), 3.0)
+func _ceniza_recuperada(vida_recuperada, puntos_recibidos):
+	var texto = "Ceniza: +" + str(puntos_recibidos) + " puntos"
+	if vida_recuperada > 0:
+		texto += " · +" + str(vida_recuperada) + " vida"
+	elif salud != null and partida != null and salud.vida >= partida.vida_maxima:
+		texto += " · vida completa"
+	mensaje(texto, 3.0)
 
 
 func _ceniza_perdida():
@@ -382,13 +371,18 @@ func _aviso_interactuar(vp, fuente):
 	var obj = interactuar.mas_cercano()
 	if obj == null or not obj.has_method("usar"):
 		return
-	var que = "la ceniza caída"
+	var que = "la ceniza"
 	var cant = 0
+	var vida = 1
 	if "cantidad" in obj:
 		cant = obj.cantidad
-	if "es_rastro" in obj and obj.es_rastro:
-		que = "el rastro de otro penitente"
-	var texto = "Mantén E: recoger " + que + "  +" + str(cant)
+	if "vida_recuperada" in obj:
+		vida = obj.vida_recuperada
+	if vida > 0:
+		que = "la ceniza curativa"
+	var texto = "Mantén E: absorber " + que + "  +" + str(cant) + " puntos"
+	if vida > 0:
+		texto += ", +" + str(vida) + " vida"
 	var tam = 20
 	var ancho = fuente.get_string_size(texto, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x
 	var bx = vp.x / 2.0 - ancho / 2.0 - 14

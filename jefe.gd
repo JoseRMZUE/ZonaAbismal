@@ -309,6 +309,10 @@ func _morir() -> void:
 	aturdido = false
 	print("    el jefe es vencido")
 	_reproducir("muerte", false)
+	var partida = get_tree().get_first_node_in_group("partida")
+	if partida != null and partida.has_method("dejar_ceniza_enemigo"):
+		# Recompensa especial: puntos extra y hasta dos vidas al absorberla.
+		partida.dejar_ceniza_enemigo(global_position, partida.puntos_jefe, 2)
 	jefe_vencido.emit()
  
 	if liberar_al_morir:
