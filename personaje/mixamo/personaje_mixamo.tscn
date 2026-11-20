@@ -7,6 +7,21 @@
 [ext_resource type="Animation" path="res://personaje/mixamo/anims/interact-right.res" id="5_b8d3k"]
 [ext_resource type="Animation" path="res://personaje/mixamo/anims/jump.res" id="6_0onc5"]
 [ext_resource type="Animation" path="res://personaje/mixamo/anims/walk.res" id="7_ef82s"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/parry_bloqueo.res" id="n_parry_bloqueo"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/parry_impacto.res" id="n_parry_impacto"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/guardia.res" id="n_guardia"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/golpeado.res" id="n_golpeado"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/caminar.res" id="n_caminar"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/correr.res" id="n_correr"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/saltar.res" id="n_saltar"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/saltar_b.res" id="n_saltar_b"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/caer.res" id="n_caer"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/aterrizar.res" id="n_aterrizar"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/morir.res" id="n_morir"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/ataque_1.res" id="n_ataque_1"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/ataque_2.res" id="n_ataque_2"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/ataque_parry.res" id="n_ataque_parry"]
+[ext_resource type="Animation" path="res://personaje/mixamo/anims/combo.res" id="n_combo"]
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_18d5l"]
 _data = {
@@ -15,7 +30,22 @@ _data = {
 &"idle": ExtResource("4_6mxdm"),
 &"interact-right": ExtResource("5_b8d3k"),
 &"jump": ExtResource("6_0onc5"),
-&"walk": ExtResource("7_ef82s")
+&"walk": ExtResource("7_ef82s"),
+&"parry_bloqueo": ExtResource("n_parry_bloqueo"),
+&"parry_impacto": ExtResource("n_parry_impacto"),
+&"guardia": ExtResource("n_guardia"),
+&"golpeado": ExtResource("n_golpeado"),
+&"caminar": ExtResource("n_caminar"),
+&"correr": ExtResource("n_correr"),
+&"saltar": ExtResource("n_saltar"),
+&"saltar_b": ExtResource("n_saltar_b"),
+&"caer": ExtResource("n_caer"),
+&"aterrizar": ExtResource("n_aterrizar"),
+&"morir": ExtResource("n_morir"),
+&"ataque_1": ExtResource("n_ataque_1"),
+&"ataque_2": ExtResource("n_ataque_2"),
+&"ataque_parry": ExtResource("n_ataque_parry"),
+&"combo": ExtResource("n_combo")
 }
 
 [node name="Node3D" type="Node3D" unique_id=793983153]
