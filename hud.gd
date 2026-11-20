@@ -171,7 +171,7 @@ func _texto_px(s, x, y, color):
 		var patron = FUENTE.get(ch, FUENTE[" "])
 		for i in range(15):
 			if patron[i] == "1":
-				_r(cx + (i % 3), y + int(i / 3), 1, 1, color)
+				_r(cx + (i % 3), y + floori(i / 3.0), 1, 1, color)
 		cx += 4
 	return cx - x
 
@@ -191,14 +191,14 @@ func _hexagono(x, y, w, h, color):
 func _barra(x, y, w, h, fraccion, colores, pista, segmentos, texto, etiqueta, brillo_borde):
 	# marco: hueso, con la fila de abajo en sombra para dar volumen
 	_hexagono(x, y, w, h, HUESO)
-	_r(x + int(h / 2) , y + h - 1, w - 2 * int(h / 2), 1, HUESO_SOMBRA)
+	_r(x + floori(h / 2.0), y + h - 1, w - 2 * floori(h / 2.0), 1, HUESO_SOMBRA)
 	if brillo_borde > 0.0:
 		var c = HUESO.lerp(colores[0], brillo_borde)
 		_hexagono(x, y, w, h, c)
 	_hexagono(x + 1, y + 1, w - 2, h - 2, NEGRO)
 	# pista y relleno
-	var ix = x + int(h / 2) + 1
-	var iw = w - 2 * (int(h / 2) + 1)
+	var ix = x + floori(h / 2.0) + 1
+	var iw = w - 2 * (floori(h / 2.0) + 1)
 	var iy = y + 3
 	var filas = h - 6
 	_r(ix, iy, iw, filas, pista)
@@ -249,7 +249,6 @@ func _dibujar():
 		return
 	var vp = get_viewport().get_visible_rect().size
 	var wu = int(vp.x / p)
-	var hu = int(vp.y / p)
 	var fuente = ThemeDB.fallback_font
 
 	# --- vida y fervor (arriba a la izquierda) -------------------------------
