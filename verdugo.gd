@@ -4,7 +4,7 @@ extends CharacterBody3D
 # golpe emite esta señal y SistemaEventos (Sala B) hace el destello de luz.
 signal evento(posicion: Vector3)
 
-enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA, HUIR, ATURDIDO }   # PARRY: ATURDIDO
+enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA, HUIR, ATURDIDO, MUERTO }   # PARRY: ATURDIDO · MUERTE: MUERTO
 
 @export var rapidez = 2.0
 @export var rango_ataque = 1.0
@@ -23,11 +23,14 @@ enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA, HUIR, ATURDIDO }   # PARRY: ATUR
 @export var alto_golpe = 1.0
 # PARRY: cuánto queda aturdido si el jugador desvía el golpe (concepto: 1.5 s).
 @export var tiempo_aturdido = 1.5
+# MUERTE: segundos que el cuerpo queda en el piso después de la animación.
+@export var espera_cuerpo = 1.0
 
 var estado = Estado.ACERCARSE
 var reloj = 0.0
 var jugador = null
 var parado = false            # PARRY: el último golpe fue desviado
+var muerto = false            # MUERTE: la Partida lo lee para no revivirlo
 # MUTANTE: el AnimationPlayer está dentro de Modelo > Mutant Idle.
 @onready var anim = $"Modelo/Mutant Idle/AnimationPlayer"
 # DESTELLO: el nodo hijo con control_efectos.gd (si no está, no pasa nada).
@@ -75,10 +78,19 @@ func _physics_process(delta):
 			ir_a(global_position + lejos, "verdugo/injuredrun")
 		Estado.ATURDIDO:   # PARRY
 			frenar("verdugo/stunned")
+		Estado.MUERTO:   # MUERTE
+			# Quieto mientras se ve la animación; al terminar, desaparece.
+			velocity.x = 0.0
+			velocity.z = 0.0
+			if reloj <= 0.001 and not is_queued_for_deletion():
+				queue_free()
 	move_and_slide()
 
 
 func decidir():
+	# MUERTE: si ya murió, nada más importa (ni siquiera huir).
+	if muerto:
+		return Estado.MUERTO
 	# NUEVO N3. Va primero: le gana a cualquier estado, también al AVISO.
 	if vida <= vida_huida:
 		return Estado.HUIR
@@ -127,6 +139,11 @@ func cambiar_a(nuevo):
 	elif estado == Estado.ATURDIDO:   # PARRY
 		reloj = tiempo_aturdido
 		parado = false
+	elif estado == Estado.MUERTO:   # MUERTE
+		# Ya no choca ni recibe disparos (sigue parado en el piso por su máscara).
+		collision_layer = 0
+		anim.play("verdugo/morir", mezcla)
+		reloj = anim.get_animation("verdugo/morir").length + espera_cuerpo
 
 
 # El aviso le da tiempo al jugador: el golpe mira DÓNDE ESTÁ AHORA,
@@ -151,14 +168,18 @@ func golpear():
 
 # NUEVO N3. Se llama igual que la del Taller 8: el rayo de apuntar.gd ya la sabe usar.
 func recibir_golpe(cuanto):
+	# MUERTE: a un cuerpo que ya cayó no se le resta más.
+	if muerto:
+		return
 	vida = maxi(vida - cuanto, 0)
 	print(name, " vida ", vida)
 	# DESTELLO: pulso blanco cuando le pegan.
 	if efectos != null:
 		efectos.destello(efectos.color_golpe)
 	if vida <= 0:
+		# MUERTE: ya no desaparece de una: primero la animación de morir.
 		print(name, " vencido")
-		queue_free()
+		muerto = true
 
 
 # MUTANTE: recibe qué animación poner (caminar o huir).

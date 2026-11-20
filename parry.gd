@@ -6,10 +6,12 @@ enum Estado { LISTA, ACTIVA, RECARGA }
 @export var duracion = 0.2
 @export var recarga = 0.5
 @onready var pj = get_parent()
+@export var margen = 0.15
 
 var estado = Estado.LISTA
 var tiempo = 0.0
 var fervor = 0
+
 
 
 func _physics_process(delta):
@@ -53,9 +55,13 @@ func terminar():
 
 
 # PARRY: los enemigos preguntan si el parry está activo justo cuando les llega el golpe.
-func esta_activa():
-	return estado == Estado.ACTIVA
 
+func esta_activa():
+	if estado == Estado.ACTIVA:
+		return true
+	if estado == Estado.RECARGA:
+		return (recarga - tiempo) <= margen
+	return false
 
 # PARRY: un enemigo avisa que su golpe fue desviado. Prende el doble daño en
 # apuntar.gd (antes era una casilla manual del Inspector) mientras dure el aturdido.

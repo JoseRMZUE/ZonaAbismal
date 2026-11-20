@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-enum Estado { PATRULLAR, ESPERAR, PERSEGUIR, ATACAR, BUSCAR }
+enum Estado { PATRULLAR, ESPERAR, PERSEGUIR, ATACAR, BUSCAR, ATURDIDO, MUERTO }
 
 @export var rapidez = 2.0
 # PARASITE: al perseguir corre (animación run), un poco más rápido.
@@ -22,9 +22,13 @@ enum Estado { PATRULLAR, ESPERAR, PERSEGUIR, ATACAR, BUSCAR }
 @export var impacto = 1.76
 # PARASITE: cuánto de la preparación del golpe se alcanza a ver antes del
 # impacto (el aviso para esquivar o hacer parry).
-@export var aviso_golpe = 0.5
+@export var aviso_golpe = 0.9
 # PARASITE: segundos de transición entre animaciones.
 @export var mezcla = 0.2
+# PARRY: si el jugador desvía el golpe, queda aturdido (concepto: 1.5 s).
+@export var tiempo_aturdido = 1.5
+# MUERTE: segundos que el cuerpo queda en el piso después de la animación.
+@export var espera_cuerpo = 1.0
 # Desplazamientos desde donde se colocó el NPC, no posiciones absolutas.
 @export var ruta: Array[Vector3] = [Vector3.ZERO, Vector3(4, 0, 0)]
 
@@ -38,9 +42,13 @@ var busca = 0.0
 var espera_golpe = 0.0
 var golpe_en_curso = false
 var tiempo_golpe = 0.0
+var aturdido_restante = 0.0   # PARRY
+var muerto = false            # MUERTE: la Partida lo lee para no revivirlo
 # PARASITE: el AnimationPlayer está dentro de Modelo > Idle.
 @onready var anim = $"Modelo/Idle/AnimationPlayer"
 @onready var vision = $Vision
+# DESTELLO: el nodo hijo con control_efectos.gd (si no está, no pasa nada).
+@onready var efectos = get_node_or_null("ControlEfectos")
 
 
 func _ready():
@@ -53,6 +61,7 @@ func _physics_process(delta):
 	velocity += get_gravity() * delta
 	reloj = maxf(reloj - delta, 0.0)
 	busca = maxf(busca - delta, 0.0)
+	aturdido_restante = maxf(aturdido_restante - delta, 0.0)
 	# 1. MEDIR
 	var d = distancia_a(jugador.global_position)
 	var ve = lo_ve()
@@ -68,6 +77,11 @@ func _physics_process(delta):
 			# El primer golpe arranca de una: su preparación ya es el aviso.
 			espera_golpe = 0.0
 			golpe_en_curso = false
+		elif estado == Estado.MUERTO:
+			# MUERTE: ya no choca ni recibe disparos (sigue en el piso por su máscara).
+			collision_layer = 0
+			anim.play("hermano/morir", mezcla)
+			reloj = anim.get_animation("hermano/morir").length + espera_cuerpo
 	# 3. ACTUAR
 	match estado:
 		Estado.PATRULLAR:
@@ -86,11 +100,28 @@ func _physics_process(delta):
 				ir_a(ultimo_visto, "hermano/walk", rapidez)
 			else:
 				frenar()
+		Estado.ATURDIDO:   # PARRY
+			velocity.x = 0.0
+			velocity.z = 0.0
+			if anim.has_animation("hermano/aturdido"):
+				anim.play("hermano/aturdido", mezcla)
+			else:
+				anim.play("hermano/idle", mezcla)
+		Estado.MUERTO:   # MUERTE
+			velocity.x = 0.0
+			velocity.z = 0.0
+			if reloj <= 0.001 and not is_queued_for_deletion():
+				queue_free()
 	move_and_slide()
 
 
 # El orden ES la regla: el primer if que se cumple gana.
 func decidir(d, ve):
+	# MUERTE y PARRY van primero: le ganan a todo lo demás.
+	if muerto:
+		return Estado.MUERTO
+	if aturdido_restante > 0.001:
+		return Estado.ATURDIDO
 	var alerta = estado == Estado.PERSEGUIR or estado == Estado.ATACAR
 	# Ya alerta, necesita más distancia para soltarlo: histéresis.
 	var limite = rango_perder if alerta else rango_vision
@@ -161,11 +192,18 @@ func distancia_a(p):
 # necesita vida y recibir_golpe para ser el enemigo real de Sala A,
 # copiando el mismo patrón que enemigo.gd (Taller 7).
 func recibir_golpe(cuanto):
+	# MUERTE: a un cuerpo que ya cayó no se le resta más.
+	if muerto:
+		return
 	vida -= cuanto
 	print(name, ": vida ", vida)
+	# DESTELLO: pulso blanco cuando le pegan.
+	if efectos != null:
+		efectos.destello(efectos.color_golpe)
 	if vida <= 0:
+		# MUERTE: ya no desaparece de una: primero la animación de morir.
 		print(name, " destruida")
-		queue_free()
+		muerto = true
 
 
 # Cada cadencia_golpe s arranca un golpe. La animación arranca aviso_golpe s
@@ -180,6 +218,9 @@ func atacar(delta):
 		anim.seek(impacto - aviso_golpe, true)
 	if golpe_en_curso:
 		tiempo_golpe += delta
+		# DESTELLO: brilla en rojo mientras prepara el golpe (el aviso).
+		if efectos != null:
+			efectos.mantener(efectos.color_aviso)
 		if tiempo_golpe >= aviso_golpe:
 			golpe_en_curso = false
 			golpear()
@@ -197,7 +238,10 @@ func golpear():
 		return
 	var parry = jugador.get_node_or_null("Parry")
 	if parry != null and parry.has_method("esta_activa") and parry.esta_activa():
+		# PARRY: igual que el Verdugo: queda aturdido y el jugador gana el doble daño.
 		print(name, " golpe desviado por el parry")
+		aturdido_restante = tiempo_aturdido
+		parry.exito(tiempo_aturdido)
 		return
 	var salud = jugador.get_node_or_null("Salud")
 	if salud != null:
