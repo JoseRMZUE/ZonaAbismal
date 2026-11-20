@@ -98,7 +98,10 @@ func poner_objetivo(texto):
 
 func _al_caer(hay_ceniza):
 	cayo_con_ceniza = hay_ceniza
-	fade_objetivo = 1.0
+	# Deja ver la animación de morir antes de oscurecer la pantalla.
+	await get_tree().create_timer(1.9, true, true).timeout
+	if partida.cayendo:
+		fade_objetivo = 1.0
 
 
 func _al_revivir():
