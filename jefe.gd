@@ -7,7 +7,7 @@ signal jefe_vencido
 enum Accion { ATACAR, CARGAR, DEFENDER, GOLPE_FUERTE, CURARSE }
  
 
-@export var ritmo: float = 1.5               
+@export var ritmo: float = 0.85              
 @export var danio: int = 1                   
 @export var cuantos_turnos: int = 0          
 @export var vida: int = 10
@@ -19,7 +19,7 @@ enum Accion { ATACAR, CARGAR, DEFENDER, GOLPE_FUERTE, CURARSE }
 # conexion con el jugador (Personaje > Parry / Salud)
 @export var alcance_ataque: float = 3.0      
 @export var margen_parry: float = 0.15       
-@export var patron: Array[int] = [0, 1, 2]   
+@export var patron: Array[int] = [0, 0, 1, 0, 0, 2]
 @export var pesos: Array[int] = [40, 40, 20]               
 @export var pesos_fase_final: Array[int] = [30, 45, 25]    
 @export var semilla: int = 0                 
@@ -28,6 +28,13 @@ enum Accion { ATACAR, CARGAR, DEFENDER, GOLPE_FUERTE, CURARSE }
 @export var liberar_al_morir: bool = true    
 @export var espera_liberar: float = 4.0
 @export var modo_prueba: bool = false        
+@export_group("Comportamiento en sala")
+@export var radio_activacion: float = 16.0
+@export var velocidad_persecucion: float = 4.4
+@export var duracion_persecucion: float = 0.55
+@export var distancia_frenado: float = 1.8
+@export var aceleracion_movimiento: float = 10.0
+@export var distancia_perseguir: float = 2.6
  
 
 var indice: int = 0
@@ -44,6 +51,10 @@ var _fin_impreso: bool = false
  
 var rng := RandomNumberGenerator.new()
 var veces: Array[int] = [0, 0, 0]
+var jugador_en_sala: bool = false
+var persecucion_restante: float = 0.0
+var ataques_seguidos: int = 0
+var persiguiendo: bool = false
  
 # animaciones
 const ANIM_POR_ACCION := {0: "atacar", 1: "cargar", 2: "defender", 3: "golpe_fuerte", 4: "curarse"}
@@ -74,9 +85,50 @@ func _physics_process(delta: float) -> void:
 		return
  
 	if aturdido:
+		velocity.x = move_toward(velocity.x, 0.0, aceleracion_movimiento * delta)
+		velocity.z = move_toward(velocity.z, 0.0, aceleracion_movimiento * delta)
+		move_and_slide()
 		aturdido_restante -= delta
 		if aturdido_restante <= 0.001:
 			_terminar_aturdimiento()
+		return
+
+	var jugador := get_tree().get_first_node_in_group("jugador") as Node3D
+	var esta_en_sala := jugador != null and global_position.distance_to(jugador.global_position) <= radio_activacion and _hay_linea_de_vision(jugador)
+	if esta_en_sala and not jugador_en_sala:
+		jugador_en_sala = true
+		reloj = ritmo
+		print("El jefe detecta al jugador: comienza el combate")
+	elif not esta_en_sala:
+		if jugador_en_sala:
+			print("El jugador salió de la sala: el jefe se calma")
+		jugador_en_sala = false
+		persecucion_restante = 0.0
+		velocity.x = move_toward(velocity.x, 0.0, aceleracion_movimiento * delta)
+		velocity.z = move_toward(velocity.z, 0.0, aceleracion_movimiento * delta)
+		move_and_slide()
+		return
+
+	# Si el jugador está lejos, el jefe pausa su patrón y se acerca antes de atacar.
+	var distancia_al_jugador := Vector2(
+		jugador.global_position.x - global_position.x,
+		jugador.global_position.z - global_position.z
+	).length()
+	if distancia_al_jugador > distancia_perseguir:
+		persiguiendo = true
+		persecucion_restante = 0.0
+		reloj = ritmo
+		_perseguir_jugador(jugador, delta)
+		return
+
+	if persiguiendo:
+		persiguiendo = false
+		# Al llegar al rango, inicia una pausa breve y luego reanuda el patrón.
+		reloj = ritmo
+
+	if persecucion_restante > 0.0:
+		persecucion_restante -= delta
+		_perseguir_jugador(jugador, delta)
 		return
  
 	if cuantos_turnos > 0 and turno_numero >= cuantos_turnos:
@@ -106,6 +158,13 @@ func jugar_turno() -> void:
  
 	var accion: int = decidir()
 	ultima_accion = accion
+	if accion == Accion.ATACAR or accion == Accion.GOLPE_FUERTE:
+		ataques_seguidos += 1
+		# Encadena ataques; cada tercer ataque hace una breve embestida de persecución.
+		if ataques_seguidos % 3 == 0:
+			persecucion_restante = duracion_persecucion
+	else:
+		ataques_seguidos = 0
 	_mirar_al_jugador()
 	_animar(accion)
  
@@ -224,6 +283,23 @@ func _terminar_aturdimiento() -> void:
 	reloj = ritmo
 	print("    el jefe se recupera")
 	_reproducir("cargado_idle" if cargado else "idle", false)
+
+
+func _perseguir_jugador(jugador: Node3D, delta: float) -> void:
+	if jugador == null or muerto or aturdido:
+		return
+	_mirar_al_jugador()
+	var direccion := jugador.global_position - global_position
+	direccion.y = 0.0
+	var distancia := direccion.length()
+	var objetivo := Vector3.ZERO
+	if distancia > distancia_frenado and distancia > 0.01:
+		objetivo = direccion.normalized() * velocidad_persecucion
+	velocity.x = move_toward(velocity.x, objetivo.x, aceleracion_movimiento * delta)
+	velocity.z = move_toward(velocity.z, objetivo.z, aceleracion_movimiento * delta)
+	move_and_slide()
+	if anim != null and not anim.is_playing():
+		_reproducir("idle", false)
  
  
 func _morir() -> void:
@@ -306,7 +382,7 @@ func _vigilar_impacto() -> void:
  
 func _resolver_impacto(accion: String, cantidad: int) -> void:
 	var jugador := get_tree().get_first_node_in_group("jugador") as Node3D
-	if jugador == null or muerto or aturdido:
+	if jugador == null or muerto or aturdido or not _hay_linea_de_vision(jugador):
 		return
  
 	var dif: Vector3 = jugador.global_position - global_position
@@ -334,6 +410,19 @@ func _parry_activo(jugador: Node) -> bool:
 		var desde_que_termino: float = float(parry.recarga) - float(parry.tiempo)
 		return desde_que_termino <= margen_parry
 	return false
+
+
+func _hay_linea_de_vision(jugador: Node3D) -> bool:
+	var desde := global_position + Vector3(0, 0.9, 0)
+	var hasta := jugador.global_position + Vector3(0, 0.9, 0)
+	var consulta := PhysicsRayQueryParameters3D.create(desde, hasta)
+	consulta.collision_mask = 0xFFFFFFFF
+	consulta.exclude = [get_rid()]
+	var impacto = get_world_3d().direct_space_state.intersect_ray(consulta)
+	if impacto.is_empty():
+		return true
+	var collider = impacto.get("collider") as Node
+	return collider == jugador or (collider != null and collider.is_in_group("jugador"))
  
  
 func _mirar_al_jugador() -> void:
@@ -345,4 +434,5 @@ func _mirar_al_jugador() -> void:
 	var dir: Vector3 = jugador.global_position - global_position
 	dir.y = 0.0
 	if dir.length() > 0.1:
-		modelo.global_rotation.y = atan2(dir.x, dir.z)
+		var objetivo := atan2(dir.x, dir.z)
+		modelo.global_rotation.y = lerp_angle(modelo.global_rotation.y, objetivo, 0.18)

@@ -53,11 +53,19 @@ var muerto = false            # MUERTE: la Partida lo lee para no revivirlo
 
 func _ready():
 	jugador = get_tree().get_first_node_in_group("jugador")
+	vision.collision_mask = 0xFFFFFFFF
 	for d in ruta:
 		puntos.append(global_position + d)
 
 
 func _physics_process(delta):
+	if not is_instance_valid(jugador):
+		jugador = get_tree().get_first_node_in_group("jugador")
+	if jugador == null:
+		velocity.x = 0.0
+		velocity.z = 0.0
+		move_and_slide()
+		return
 	velocity += get_gravity() * delta
 	reloj = maxf(reloj - delta, 0.0)
 	busca = maxf(busca - delta, 0.0)
@@ -140,13 +148,16 @@ func decidir(d, ve):
 
 
 func lo_ve():
+	if not is_instance_valid(jugador):
+		return false
 	# Se apunta al pecho: el origen del jugador está en los pies.
 	var pecho = jugador.global_position + Vector3(0, 0.9, 0)
 	vision.target_position = vision.to_local(pecho)
 	vision.force_raycast_update()
 	if vision.is_colliding():
 		# ¿Lo primero que tocó fue el jugador, o una pared?
-		return vision.get_collider() == jugador
+		var collider = vision.get_collider() as Node
+		return collider == jugador or (collider != null and collider.is_in_group("jugador"))
 	return true
 
 
@@ -232,6 +243,9 @@ func atacar(delta):
 # El golpe mira dónde está el jugador AHORA: si se alejó, saltó o está en
 # otra plataforma, falla. Si el parry está activo, lo desvía.
 func golpear():
+	if not lo_ve():
+		print(name, " no alcanza al jugador: una pared bloquea la visión")
+		return
 	var dif = jugador.global_position - global_position
 	if Vector2(dif.x, dif.z).length() > alcance_golpe or absf(dif.y) > alto_golpe:
 		print(name, " falla el golpe")

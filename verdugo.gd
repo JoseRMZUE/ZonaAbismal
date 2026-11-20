@@ -47,7 +47,27 @@ func _ready():
 
 
 func _physics_process(delta):
+	if not is_instance_valid(jugador):
+		jugador = get_tree().get_first_node_in_group("jugador")
+	if jugador == null and not muerto:
+		velocity.x = 0.0
+		velocity.z = 0.0
+		return
+
 	velocity += get_gravity() * delta
+	# Una pared corta su visión: se detiene y no avanza el ciclo de ataque.
+	if not muerto and not _hay_linea_de_vision():
+		velocity.x = 0.0
+		velocity.z = 0.0
+		if estado == Estado.AVISO or estado == Estado.GOLPE:
+			estado = Estado.ACERCARSE
+			reloj = 0.0
+			parado = false
+		if anim.current_animation != "verdugo/idle":
+			anim.play("verdugo/idle", mezcla)
+		move_and_slide()
+		return
+
 	reloj = maxf(reloj - delta, 0.0)
 	var nuevo = decidir()
 	if nuevo != estado:
@@ -149,6 +169,9 @@ func cambiar_a(nuevo):
 # El aviso le da tiempo al jugador: el golpe mira DÓNDE ESTÁ AHORA,
 # también en altura (si saltó o está en otra plataforma, falla).
 func golpear():
+	if not _hay_linea_de_vision():
+		print(name, " falla el golpe: una pared bloquea la visión")
+		return
 	if distancia() > alcance_golpe or altura() > alto_golpe:
 		print(name, " falla a ", snappedf(distancia(), 0.01), " m (altura ",
 			snappedf(altura(), 0.01), " m)")
@@ -214,3 +237,16 @@ func distancia():
 # Diferencia de altura (los dos tienen el origen en los pies).
 func altura():
 	return absf(jugador.global_position.y - global_position.y)
+
+
+func _hay_linea_de_vision() -> bool:
+	var desde: Vector3 = global_position + Vector3(0, 0.9, 0)
+	var hasta: Vector3 = jugador.global_position + Vector3(0, 0.9, 0)
+	var consulta := PhysicsRayQueryParameters3D.create(desde, hasta)
+	consulta.collision_mask = 0xFFFFFFFF
+	consulta.exclude = [get_rid()]
+	var impacto_rayo = get_world_3d().direct_space_state.intersect_ray(consulta)
+	if impacto_rayo.is_empty():
+		return true
+	var collider = impacto_rayo.get("collider") as Node
+	return collider == jugador or (collider != null and collider.is_in_group("jugador"))

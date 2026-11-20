@@ -24,15 +24,32 @@ var estado = Estado.PATRULLA
 var punto = 0
 
 
+func _ready():
+	if objetivo == null:
+		objetivo = get_tree().get_first_node_in_group("jugador") as Node3D
+
+
 func _physics_process(delta):
+	if not is_instance_valid(objetivo):
+		objetivo = get_tree().get_first_node_in_group("jugador") as Node3D
+	if objetivo == null:
+		velocity.x = 0.0
+		velocity.z = 0.0
+		move_and_slide()
+		return
+	if puntos.is_empty():
+		push_warning("Enemigo: no hay puntos de patrulla asignados.")
+		return
+
 	if not is_on_floor():
 		velocity.y -= gravedad * delta
 
 	var distancia = global_position.distance_to(objetivo.global_position)
+	var ve_al_jugador = _hay_linea_de_vision()
 
 	match estado:
 		Estado.PATRULLA:
-			if distancia < radio_ver:
+			if distancia < radio_ver and ve_al_jugador:
 				estado = Estado.PERSEGUIR
 				print("lo vio a ", snappedf(distancia, 0.01), " m")
 				print("destello")
@@ -43,13 +60,27 @@ func _physics_process(delta):
 				punto = (punto + 1) % puntos.size()
 
 		Estado.PERSEGUIR:
-			if distancia > radio_perder:
+			if distancia > radio_perder or not ve_al_jugador:
 				estado = Estado.PATRULLA
-				print("lo perdió a ", snappedf(distancia, 0.01), " m")
-
-			ir_a(objetivo.global_position)
+				print("perdió visión del jugador a ", snappedf(distancia, 0.01), " m")
+				ir_a(puntos[punto])
+			else:
+				ir_a(objetivo.global_position)
 
 	move_and_slide()
+
+
+func _hay_linea_de_vision() -> bool:
+	var desde: Vector3 = global_position + Vector3(0, 0.9, 0)
+	var hasta: Vector3 = objetivo.global_position + Vector3(0, 0.9, 0)
+	var consulta := PhysicsRayQueryParameters3D.create(desde, hasta)
+	consulta.collision_mask = 0xFFFFFFFF
+	consulta.exclude = [get_rid()]
+	var impacto = get_world_3d().direct_space_state.intersect_ray(consulta)
+	if impacto.is_empty():
+		return true
+	var collider = impacto.get("collider") as Node
+	return collider == objetivo or (collider != null and collider.is_in_group("jugador"))
 
 
 func ir_a(p):
