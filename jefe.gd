@@ -573,10 +573,10 @@ func _hay_linea_de_vision(jugador: Node3D) -> bool:
 	var consulta := PhysicsRayQueryParameters3D.create(desde, hasta)
 	consulta.collision_mask = 0xFFFFFFFF
 	consulta.exclude = [get_rid()]
-	var impacto = get_world_3d().direct_space_state.intersect_ray(consulta)
-	if impacto.is_empty():
+	var choque = get_world_3d().direct_space_state.intersect_ray(consulta)
+	if choque.is_empty():
 		return true
-	var collider = impacto.get("collider") as Node
+	var collider = choque.get("collider") as Node
 	return collider == jugador or (collider != null and collider.is_in_group("jugador"))
  
 
