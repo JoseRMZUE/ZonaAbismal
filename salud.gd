@@ -1,6 +1,6 @@
 extends Node
 
-@export var vida = 3
+@export var vida = 4
 @export var invulnerable = 1.0
 var reloj = 0.0
 

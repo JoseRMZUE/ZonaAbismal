@@ -555,6 +555,7 @@ semilla = 5
 
 [node name="Jefe" parent="." unique_id=1263683044 instance=ExtResource("23_d13ii")]
 transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 15, 7.3, 0)
+vida = 8
 
 [node name="Flujo" type="Node" parent="." unique_id=1900000001]
 script = ExtResource("30_flujo")

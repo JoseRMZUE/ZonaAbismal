@@ -7,7 +7,7 @@ signal jefe_vencido
 enum Accion { ATACAR, CARGAR, DEFENDER, GOLPE_FUERTE, CURARSE }
  
 
-@export var ritmo: float = 1.15              
+@export var ritmo: float = 2              
 @export var danio: int = 1                   
 @export var cuantos_turnos: int = 0          
 @export var vida: int = 10
