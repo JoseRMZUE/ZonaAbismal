@@ -53,9 +53,14 @@ var inicio_visible = false
 var inicio_t = 0.0
 # Avisos de parry (una vez por partida abierta): 1 = al primer golpe recibido,
 # 2 = al primer parry que sale bien.
-var aviso_tipo = 0
+var aviso_tipo = 0   # 3 = al cruzar la puerta al salón del Jefe
 var aviso_t = 0.0
 var vida_previa = -1
+# Pausa (P o Esc): los mismos controles del inicio, para repasarlos.
+var pausa_visible = false
+var pausa_t = 0.0
+# Puertas que el HUD señala con una flecha cuando se abren.
+var puertas = []            # [{nodo, cruzada, abierta_t}]
 var doble_previo = false
 
 
@@ -86,6 +91,7 @@ func _conectar():
 		partida.ceniza_recuperada.connect(_ceniza_recuperada)
 		partida.ceniza_perdida.connect(_ceniza_perdida)
 		partida.zona_terminada.connect(_zona_terminada)
+		_conectar_puertas()
 		_abrir_inicio()
 
 
@@ -141,7 +147,7 @@ func _zona_terminada():
 #  - la primera vez que el jugador recibe un golpe (enseña qué hacer),
 #  - la primera vez que un parry sale bien (enseña qué ganó).
 func _vigilar_avisos_parry():
-	if salud == null or not is_instance_valid(salud) or inicio_visible or fin_visible:
+	if salud == null or not is_instance_valid(salud) or inicio_visible or fin_visible or pausa_visible:
 		return
 	var vida = int(salud.vida)
 	if vida_previa < 0:
@@ -165,6 +171,47 @@ func _vigilar_avisos_parry():
 		aviso_t = 7.0
 
 
+# El HUD señala las puertas que se abren (flecha dorada) hasta que se cruzan.
+# El aviso grande del Jefe sale una sola vez al cruzar la puerta al salón.
+func _conectar_puertas():
+	var main = get_parent()
+	if main == null:
+		return
+	for ruta in ["Puertas/PuertaAlSalon", "Puertas/PuertaAlBosque"]:
+		var nodo = main.get_node_or_null(ruta)
+		if nodo == null or not ("abierta" in nodo):
+			continue
+		var d = {"nodo": nodo, "cruzada": false, "abierta_t": 0.0}
+		puertas.append(d)
+		nodo.cruzada.connect(_puerta_cruzada.bind(d, ruta))
+
+
+func _puerta_cruzada(d, ruta):
+	d.cruzada = true
+	if ruta.ends_with("PuertaAlSalon") and not Engine.has_meta("zona_aviso_salon"):
+		Engine.set_meta("zona_aviso_salon", true)
+		aviso_tipo = 3
+		aviso_t = 8.0
+
+
+# P o Esc: pausa con los controles a la vista.
+func _alternar_pausa():
+	if pausa_visible:
+		pausa_visible = false
+		get_tree().paused = false
+		# Igual que en el inicio: lo que se gastó mirando no cuenta en el tiempo.
+		if partida != null:
+			partida.tiempo = minf(partida.tiempo + pausa_t, partida.tiempo_limite)
+		return
+	if inicio_visible or fin_visible or partida == null or get_tree().paused:
+		return
+	if partida.estado == partida.Estado.PERDIO or partida.cayendo:
+		return
+	pausa_visible = true
+	pausa_t = 0.0
+	get_tree().paused = true
+
+
 # La pantalla de inicio pausa el juego hasta que el jugador aprieta ENTER.
 # Se guarda una marca en Engine para que no vuelva a salir al reiniciar la escena.
 func _abrir_inicio():
@@ -186,6 +233,16 @@ func _cerrar_inicio():
 
 
 func _input(event):
+	if event is InputEventKey and event.pressed and not event.echo:
+		var k = event.keycode
+		if k == KEY_P or k == KEY_ESCAPE or (pausa_visible and (k == KEY_ENTER or k == KEY_KP_ENTER)):
+			if pausa_visible and pausa_t < 0.2:
+				return
+			_alternar_pausa()
+			get_viewport().set_input_as_handled()
+			return
+	if pausa_visible:
+		return
 	if inicio_visible and inicio_t > 0.3 and event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
 			_cerrar_inicio()
@@ -209,6 +266,11 @@ func _process(delta):
 	if inicio_visible:
 		inicio_t += delta
 	aviso_t = maxf(aviso_t - delta, 0.0)
+	if pausa_visible:
+		pausa_t += delta
+	for d in puertas:
+		if is_instance_valid(d.nodo) and d.nodo.abierta and not d.cruzada:
+			d.abierta_t += delta
 	_vigilar_avisos_parry()
 	if salud != null and is_instance_valid(salud):
 		vida_mostrada = move_toward(vida_mostrada, float(salud.vida), delta * 6.0)
@@ -407,8 +469,17 @@ func _dibujar():
 		_pantalla_fin(vp, fuente)
 
 	# --- aviso de parry -----------------------------------------------------
-	if aviso_t > 0.0 and not inicio_visible and not fin_visible:
+	if aviso_t > 0.0 and not inicio_visible and not fin_visible and not pausa_visible:
 		_aviso_parry(vp, fuente)
+
+	# --- flechas hacia las puertas abiertas ---------------------------------
+	if not inicio_visible and not fin_visible and not pausa_visible:
+		for d in puertas:
+			_flecha_puerta(vp, d)
+
+	# --- pausa ----------------------------------------------------------------
+	if pausa_visible:
+		_pantalla_inicio(vp, fuente, true)
 
 	# --- inicio del juego ---------------------------------------------------
 	if inicio_visible:
@@ -534,8 +605,9 @@ func _tecla_flecha(fuente, derecha, x, y, tam, a):
 	return ancho
 
 
-func _pantalla_inicio(vp, fuente):
-	var a = clampf(inicio_t / 0.5, 0.0, 1.0)
+func _pantalla_inicio(vp, fuente, pausa = false):
+	var tt = pausa_t if pausa else inicio_t
+	var a = clampf(tt / 0.5, 0.0, 1.0)
 	var e = clampf(vp.y / 648.0, 0.8, 1.6)
 	var hueso = Color(HUESO.r, HUESO.g, HUESO.b, a)
 	var sombra = Color(HUESO_SOMBRA.r, HUESO_SOMBRA.g, HUESO_SOMBRA.b, a)
@@ -554,9 +626,12 @@ func _pantalla_inicio(vp, fuente):
 
 	var cx = vp.x / 2.0
 	var y = y0 + 52.0 * e
-	lienzo.draw_string(fuente, Vector2(x0, y), "ZONA ABISMAL", HORIZONTAL_ALIGNMENT_CENTER, w, int(34 * e), dorado)
+	lienzo.draw_string(fuente, Vector2(x0, y), "PAUSA" if pausa else "ZONA ABISMAL", HORIZONTAL_ALIGNMENT_CENTER, w, int(34 * e), dorado)
 	lienzo.draw_rect(Rect2(cx - 110.0 * e, y + 12.0 * e, 220.0 * e, 3), oro)
-	lienzo.draw_string(fuente, Vector2(x0, y + 46.0 * e), "Cruza el templo, mata a los enemigos y consigue tu redención.", HORIZONTAL_ALIGNMENT_CENTER, w, int(16 * e), hueso)
+	var subtitulo = "Cruza el templo, mata a los enemigos y consigue tu redención."
+	if pausa:
+		subtitulo = ("Objetivo: " + objetivo) if objetivo != "" else "Juego en pausa"
+	lienzo.draw_string(fuente, Vector2(x0, y + 46.0 * e), subtitulo, HORIZONTAL_ALIGNMENT_CENTER, w, int(16 * e), hueso)
 
 	var tam = int(15 * e)
 	var fila = 38.0 * e
@@ -592,18 +667,36 @@ func _pantalla_inicio(vp, fuente):
 	lienzo.draw_string(fuente, Vector2(x0, ty + 12.0 * e), "El Jefe solo recibe daño justo después de un parry.", HORIZONTAL_ALIGNMENT_CENTER, w, int(14 * e), sombra)
 
 	var parpadeo = 0.6 + 0.4 * sin(t * 4.0)
+	var a2 = a * parpadeo
+	var gran = int(17 * e)
+	var by = y0 + h - 58.0 * e
+	if pausa:
+		# [P] o [ESC]  para continuar
+		var texto_p = "para continuar"
+		var wp = fuente.get_string_size("P", HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x + tam * 1.1
+		wp = maxf(wp, tam * 2.0)
+		var we = fuente.get_string_size("ESC", HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x + tam * 1.1
+		var wo = fuente.get_string_size("o", HORIZONTAL_ALIGNMENT_LEFT, -1, desc).x
+		var wt = fuente.get_string_size(texto_p, HORIZONTAL_ALIGNMENT_LEFT, -1, gran).x
+		var total = wp + 10.0 * e + wo + 10.0 * e + we + 12.0 * e + wt
+		var bx = cx - total / 2.0
+		bx += _tecla(fuente, "P", bx, by, tam, a2) + 10.0 * e
+		lienzo.draw_string(fuente, Vector2(bx, by + base), "o", HORIZONTAL_ALIGNMENT_LEFT, -1, desc, Color(HUESO_SOMBRA.r, HUESO_SOMBRA.g, HUESO_SOMBRA.b, a2))
+		bx += wo + 10.0 * e
+		bx += _tecla(fuente, "ESC", bx, by, tam, a2) + 12.0 * e
+		lienzo.draw_string(fuente, Vector2(bx, by + base), texto_p, HORIZONTAL_ALIGNMENT_LEFT, -1, gran, Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, a2))
+		return
 	var texto_e = "para empezar"
-	var ancho_t = fuente.get_string_size(texto_e, HORIZONTAL_ALIGNMENT_LEFT, -1, int(17 * e)).x
+	var ancho_t = fuente.get_string_size(texto_e, HORIZONTAL_ALIGNMENT_LEFT, -1, gran).x
 	var ancho_k = fuente.get_string_size("ENTER", HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x + tam * 1.1
 	var bx = cx - (ancho_k + 10.0 * e + ancho_t) / 2.0
-	var by = y0 + h - 58.0 * e
-	var kw = _tecla(fuente, "ENTER", bx, by, tam, a * parpadeo)
-	lienzo.draw_string(fuente, Vector2(bx + kw + 10.0 * e, by + base), texto_e, HORIZONTAL_ALIGNMENT_LEFT, -1, int(17 * e), Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, a * parpadeo))
+	var kw = _tecla(fuente, "ENTER", bx, by, tam, a2)
+	lienzo.draw_string(fuente, Vector2(bx + kw + 10.0 * e, by + base), texto_e, HORIZONTAL_ALIGNMENT_LEFT, -1, gran, Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, a2))
 
 
 # Recuadro corto abajo al centro con una tecla y una frase.
 func _aviso_parry(vp, fuente):
-	var total = 7.0 if aviso_tipo == 1 else 6.0
+	var total = 7.0 if aviso_tipo == 1 else (8.0 if aviso_tipo == 3 else 6.0)
 	var a = clampf((total - aviso_t) / 0.4, 0.0, 1.0) * clampf(aviso_t / 0.6, 0.0, 1.0)
 	var e = clampf(vp.y / 648.0, 0.8, 1.6)
 	var tecla_txt = "K"
@@ -613,6 +706,9 @@ func _aviso_parry(vp, fuente):
 		tecla_txt = "J"
 		linea1 = "¡Parry! Ataca ahora con J"
 		linea2 = "El siguiente golpe hace daño doble"
+	elif aviso_tipo == 3:
+		linea1 = "El Jefe solo recibe daño después de un parry"
+		linea2 = "Desvía su golpe con K y ataca enseguida con J"
 	var tam = int(15 * e)
 	var t1 = int(17 * e)
 	var t2 = int(14 * e)
@@ -627,3 +723,38 @@ func _aviso_parry(vp, fuente):
 	var tx = x0 + 22.0 * e + kw + 18.0 * e
 	lienzo.draw_string(fuente, Vector2(tx, y0 + h * 0.43), linea1, HORIZONTAL_ALIGNMENT_LEFT, -1, t1, Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, a))
 	lienzo.draw_string(fuente, Vector2(tx, y0 + h * 0.75), linea2, HORIZONTAL_ALIGNMENT_LEFT, -1, t2, Color(HUESO.r, HUESO.g, HUESO.b, a))
+
+
+# Flecha dorada hacia una puerta que ya se abrió y todavía no se cruzó.
+# Fuera de pantalla: sale en el borde, apuntando hacia ella (como la de la ceniza).
+# En pantalla: una flecha que rebota encima de la puerta durante los primeros 10 s.
+func _flecha_puerta(vp, d):
+	var nodo = d.nodo
+	if not is_instance_valid(nodo) or not nodo.abierta or d.cruzada:
+		return
+	var cam = get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var punto = cam.unproject_position(nodo.global_position + Vector3(0, 1.0, 0))
+	var margen = 44.0
+	var area = Rect2(margen, margen, maxf(vp.x - 2 * margen, 1.0), maxf(vp.y - 2 * margen, 1.0))
+	var oro = Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, 0.7 + 0.3 * sin(t * 5.0))
+	if area.has_point(punto):
+		if d.abierta_t > 10.0:
+			return
+		var rebote = 6.0 * sin(t * 6.0)
+		var b = Vector2(punto.x, punto.y - 70.0 + rebote)
+		lienzo.draw_colored_polygon(PackedVector2Array([b + Vector2(0, 22), b + Vector2(-14, -2), b + Vector2(14, -2)]), oro)
+		lienzo.draw_rect(Rect2(b.x - 5, b.y - 22, 10, 22), oro)
+		return
+	var centro = vp / 2.0
+	var dir = (punto - centro).normalized()
+	var esc = 100000.0
+	if absf(dir.x) > 0.001:
+		esc = minf(esc, (area.size.x / 2.0) / absf(dir.x))
+	if absf(dir.y) > 0.001:
+		esc = minf(esc, (area.size.y / 2.0) / absf(dir.y))
+	var pos = centro + dir * esc
+	var perp = Vector2(-dir.y, dir.x)
+	lienzo.draw_colored_polygon(PackedVector2Array([pos + dir * 18, pos - dir * 8 + perp * 13, pos - dir * 8 - perp * 13]), oro)
+	lienzo.draw_circle(pos - dir * 24, 3.5, oro)
