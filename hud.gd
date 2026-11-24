@@ -48,6 +48,9 @@ var estaba_ganado = false
 var victoria_t = 0.0
 var fin_visible = false
 var fin_t = 0.0
+# Pantalla de inicio (controles + ENTER). Solo sale la primera vez que se abre el juego.
+var inicio_visible = false
+var inicio_t = 0.0
 
 
 func _ready():
@@ -77,6 +80,7 @@ func _conectar():
 		partida.ceniza_recuperada.connect(_ceniza_recuperada)
 		partida.ceniza_perdida.connect(_ceniza_perdida)
 		partida.zona_terminada.connect(_zona_terminada)
+		_abrir_inicio()
 
 
 # ---------------------------------------------------------------------------
@@ -127,7 +131,32 @@ func _zona_terminada():
 	fin_t = 0.0
 
 
+# La pantalla de inicio pausa el juego hasta que el jugador aprieta ENTER.
+# Se guarda una marca en Engine para que no vuelva a salir al reiniciar la escena.
+func _abrir_inicio():
+	if Engine.has_meta("zona_inicio_visto"):
+		return
+	inicio_visible = true
+	inicio_t = 0.0
+	get_tree().paused = true
+
+
+func _cerrar_inicio():
+	inicio_visible = false
+	Engine.set_meta("zona_inicio_visto", true)
+	get_tree().paused = false
+	# La Partida cuenta el tiempo aunque el juego esté en pausa: se le devuelve
+	# lo que se gastó leyendo, para que no cuente en el tiempo de la zona.
+	if partida != null:
+		partida.tiempo = minf(partida.tiempo + inicio_t, partida.tiempo_limite)
+
+
 func _input(event):
+	if inicio_visible and inicio_t > 0.3 and event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+			_cerrar_inicio()
+			get_viewport().set_input_as_handled()
+		return
 	# ENTER (no la barra espaciadora, que es el salto) vuelve a empezar.
 	if fin_visible and fin_t > 1.0 and event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
@@ -143,6 +172,8 @@ func _process(delta):
 	fade = move_toward(fade, fade_objetivo, delta * 2.2)
 	if fin_visible:
 		fin_t += delta
+	if inicio_visible:
+		inicio_t += delta
 	if salud != null and is_instance_valid(salud):
 		vida_mostrada = move_toward(vida_mostrada, float(salud.vida), delta * 6.0)
 	if parry != null and is_instance_valid(parry):
@@ -339,6 +370,10 @@ func _dibujar():
 	if fin_visible:
 		_pantalla_fin(vp, fuente)
 
+	# --- inicio del juego ---------------------------------------------------
+	if inicio_visible:
+		_pantalla_inicio(vp, fuente)
+
 
 func _flecha_ceniza(vp):
 	var nodo = partida.ceniza_actual
@@ -431,3 +466,96 @@ func _pantalla_fin(vp, fuente):
 	if fin_t > 1.0:
 		var parpadeo = 0.55 + 0.45 * sin(t * 4.0)
 		lienzo.draw_string(fuente, Vector2(0, fy + 40), "ENTER para volver a empezar", HORIZONTAL_ALIGNMENT_CENTER, vp.x, 24, Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, parpadeo))
+
+
+# Una tecla dibujada como botón: fondo oscuro, borde dorado y base más gruesa.
+# Devuelve el ancho que ocupó, para poder poner otra tecla al lado.
+func _tecla(fuente, texto, x, y, tam, a, ancho_min = 0.0):
+	var ancho = maxf(fuente.get_string_size(texto, HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x + tam * 1.1, maxf(ancho_min, tam * 2.0))
+	var alto = tam * 1.9
+	var oro = Color(ORO.r, ORO.g, ORO.b, a)
+	lienzo.draw_rect(Rect2(x, y, ancho, alto), Color(FONDO.r, FONDO.g, FONDO.b, a))
+	lienzo.draw_rect(Rect2(x, y, ancho, alto), oro, false, 1.5)
+	lienzo.draw_rect(Rect2(x, y + alto - 4, ancho, 4), oro)
+	lienzo.draw_string(fuente, Vector2(x, y + alto * 0.62), texto, HORIZONTAL_ALIGNMENT_CENTER, ancho, tam, Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, a))
+	return ancho
+
+
+# Tecla de flecha (se dibuja el triángulo: así no depende de la letra del sistema).
+func _tecla_flecha(fuente, derecha, x, y, tam, a):
+	var ancho = _tecla(fuente, "", x, y, tam, a)
+	var alto = tam * 1.9
+	var cx = x + ancho / 2.0
+	var cy = y + (alto - 4) / 2.0
+	var r = tam * 0.45
+	var d = 1.0 if derecha else -1.0
+	var puntos = PackedVector2Array([Vector2(cx + d * r, cy), Vector2(cx - d * r * 0.7, cy - r), Vector2(cx - d * r * 0.7, cy + r)])
+	lienzo.draw_colored_polygon(puntos, Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, a))
+	return ancho
+
+
+func _pantalla_inicio(vp, fuente):
+	var a = clampf(inicio_t / 0.5, 0.0, 1.0)
+	var e = clampf(vp.y / 648.0, 0.8, 1.6)
+	var hueso = Color(HUESO.r, HUESO.g, HUESO.b, a)
+	var sombra = Color(HUESO_SOMBRA.r, HUESO_SOMBRA.g, HUESO_SOMBRA.b, a)
+	var dorado = Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, a)
+	var oro = Color(ORO.r, ORO.g, ORO.b, a)
+
+	# Un velo suave para que el recuadro destaque, sin tapar el juego.
+	lienzo.draw_rect(Rect2(Vector2.ZERO, vp), Color(NEGRO.r, NEGRO.g, NEGRO.b, 0.35 * a))
+
+	var w = 540.0 * e
+	var h = 400.0 * e
+	var x0 = (vp.x - w) / 2.0
+	var y0 = (vp.y - h) / 2.0
+	lienzo.draw_rect(Rect2(x0, y0, w, h), Color(NEGRO.r, NEGRO.g, NEGRO.b, 0.93 * a))
+	lienzo.draw_rect(Rect2(x0, y0, w, h), oro, false, 2.0)
+
+	var cx = vp.x / 2.0
+	var y = y0 + 52.0 * e
+	lienzo.draw_string(fuente, Vector2(x0, y), "ZONA ABISMAL", HORIZONTAL_ALIGNMENT_CENTER, w, int(34 * e), dorado)
+	lienzo.draw_rect(Rect2(cx - 110.0 * e, y + 12.0 * e, 220.0 * e, 3), oro)
+	lienzo.draw_string(fuente, Vector2(x0, y + 46.0 * e), "Cruza el templo, mata a los enemigos y consigue tu redención.", HORIZONTAL_ALIGNMENT_CENTER, w, int(16 * e), hueso)
+
+	var tam = int(15 * e)
+	var fila = 38.0 * e
+	var ty = y + 78.0 * e
+	var tx = x0 + 44.0 * e
+	var dx = x0 + 270.0 * e
+	var desc = int(16 * e)
+	var alto_tecla = tam * 1.9
+	var base = alto_tecla * 0.62 + (alto_tecla - desc) / 2.0 - 2.0 * e
+
+	# Moverte: A D o flechas
+	var x = tx
+	x += _tecla(fuente, "A", x, ty, tam, a) + 6.0 * e
+	x += _tecla(fuente, "D", x, ty, tam, a) + 10.0 * e
+	lienzo.draw_string(fuente, Vector2(x, ty + base), "o", HORIZONTAL_ALIGNMENT_LEFT, -1, desc, sombra)
+	x += 22.0 * e
+	x += _tecla_flecha(fuente, false, x, ty, tam, a) + 6.0 * e
+	_tecla_flecha(fuente, true, x, ty, tam, a)
+	lienzo.draw_string(fuente, Vector2(dx, ty + base), "Moverte", HORIZONTAL_ALIGNMENT_LEFT, -1, desc, hueso)
+	ty += fila
+
+	var teclas = [
+		["Espacio", "Saltar"],
+		["J", "Atacar"],
+		["K", "Parry, justo antes del golpe"],
+		["E", "Mantén para absorber ceniza"],
+	]
+	for t_ in teclas:
+		_tecla(fuente, t_[0], tx, ty, tam, a, 84.0 * e if t_[0] == "Espacio" else 0.0)
+		lienzo.draw_string(fuente, Vector2(dx, ty + base), t_[1], HORIZONTAL_ALIGNMENT_LEFT, -1, desc, hueso)
+		ty += fila
+
+	lienzo.draw_string(fuente, Vector2(x0, ty + 12.0 * e), "El Jefe solo recibe daño justo después de un parry.", HORIZONTAL_ALIGNMENT_CENTER, w, int(14 * e), sombra)
+
+	var parpadeo = 0.6 + 0.4 * sin(t * 4.0)
+	var texto_e = "para empezar"
+	var ancho_t = fuente.get_string_size(texto_e, HORIZONTAL_ALIGNMENT_LEFT, -1, int(17 * e)).x
+	var ancho_k = fuente.get_string_size("ENTER", HORIZONTAL_ALIGNMENT_LEFT, -1, tam).x + tam * 1.1
+	var bx = cx - (ancho_k + 10.0 * e + ancho_t) / 2.0
+	var by = y0 + h - 58.0 * e
+	var kw = _tecla(fuente, "ENTER", bx, by, tam, a * parpadeo)
+	lienzo.draw_string(fuente, Vector2(bx + kw + 10.0 * e, by + base), texto_e, HORIZONTAL_ALIGNMENT_LEFT, -1, int(17 * e), Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, a * parpadeo))
