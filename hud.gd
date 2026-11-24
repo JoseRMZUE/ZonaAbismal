@@ -51,6 +51,12 @@ var fin_t = 0.0
 # Pantalla de inicio (controles + ENTER). Solo sale la primera vez que se abre el juego.
 var inicio_visible = false
 var inicio_t = 0.0
+# Avisos de parry (una vez por partida abierta): 1 = al primer golpe recibido,
+# 2 = al primer parry que sale bien.
+var aviso_tipo = 0
+var aviso_t = 0.0
+var vida_previa = -1
+var doble_previo = false
 
 
 func _ready():
@@ -131,6 +137,34 @@ func _zona_terminada():
 	fin_t = 0.0
 
 
+# Los avisos de parry salen solos, una sola vez cada uno:
+#  - la primera vez que el jugador recibe un golpe (enseña qué hacer),
+#  - la primera vez que un parry sale bien (enseña qué ganó).
+func _vigilar_avisos_parry():
+	if salud == null or not is_instance_valid(salud) or inicio_visible or fin_visible:
+		return
+	var vida = int(salud.vida)
+	if vida_previa < 0:
+		vida_previa = vida
+	var golpeado = vida < vida_previa and partida != null and not partida.cayendo
+	vida_previa = vida
+	var apuntar = null
+	if jugador != null and is_instance_valid(jugador):
+		apuntar = jugador.get_node_or_null("Apuntar")
+	var doble = apuntar != null and "tras_parry" in apuntar and apuntar.tras_parry
+	var salio_bien = doble and not doble_previo
+	doble_previo = doble
+	if salio_bien and not Engine.has_meta("zona_aviso_parry_ok"):
+		Engine.set_meta("zona_aviso_parry_ok", true)
+		Engine.set_meta("zona_aviso_parry_golpe", true)   # ya lo entendió: no hace falta el otro
+		aviso_tipo = 2
+		aviso_t = 6.0
+	elif golpeado and not Engine.has_meta("zona_aviso_parry_golpe") and vida > 0:
+		Engine.set_meta("zona_aviso_parry_golpe", true)
+		aviso_tipo = 1
+		aviso_t = 7.0
+
+
 # La pantalla de inicio pausa el juego hasta que el jugador aprieta ENTER.
 # Se guarda una marca en Engine para que no vuelva a salir al reiniciar la escena.
 func _abrir_inicio():
@@ -174,6 +208,8 @@ func _process(delta):
 		fin_t += delta
 	if inicio_visible:
 		inicio_t += delta
+	aviso_t = maxf(aviso_t - delta, 0.0)
+	_vigilar_avisos_parry()
 	if salud != null and is_instance_valid(salud):
 		vida_mostrada = move_toward(vida_mostrada, float(salud.vida), delta * 6.0)
 	if parry != null and is_instance_valid(parry):
@@ -370,6 +406,10 @@ func _dibujar():
 	if fin_visible:
 		_pantalla_fin(vp, fuente)
 
+	# --- aviso de parry -----------------------------------------------------
+	if aviso_t > 0.0 and not inicio_visible and not fin_visible:
+		_aviso_parry(vp, fuente)
+
 	# --- inicio del juego ---------------------------------------------------
 	if inicio_visible:
 		_pantalla_inicio(vp, fuente)
@@ -559,3 +599,31 @@ func _pantalla_inicio(vp, fuente):
 	var by = y0 + h - 58.0 * e
 	var kw = _tecla(fuente, "ENTER", bx, by, tam, a * parpadeo)
 	lienzo.draw_string(fuente, Vector2(bx + kw + 10.0 * e, by + base), texto_e, HORIZONTAL_ALIGNMENT_LEFT, -1, int(17 * e), Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, a * parpadeo))
+
+
+# Recuadro corto abajo al centro con una tecla y una frase.
+func _aviso_parry(vp, fuente):
+	var total = 7.0 if aviso_tipo == 1 else 6.0
+	var a = clampf((total - aviso_t) / 0.4, 0.0, 1.0) * clampf(aviso_t / 0.6, 0.0, 1.0)
+	var e = clampf(vp.y / 648.0, 0.8, 1.6)
+	var tecla_txt = "K"
+	var linea1 = "Parry: aprieta K justo antes de que te golpeen"
+	var linea2 = "Si sale bien, el enemigo queda aturdido"
+	if aviso_tipo == 2:
+		tecla_txt = "J"
+		linea1 = "¡Parry! Ataca ahora con J"
+		linea2 = "El siguiente golpe hace daño doble"
+	var tam = int(15 * e)
+	var t1 = int(17 * e)
+	var t2 = int(14 * e)
+	var ancho_txt = maxf(fuente.get_string_size(linea1, HORIZONTAL_ALIGNMENT_LEFT, -1, t1).x, fuente.get_string_size(linea2, HORIZONTAL_ALIGNMENT_LEFT, -1, t2).x)
+	var w = ancho_txt + 110.0 * e
+	var h = 70.0 * e
+	var x0 = (vp.x - w) / 2.0
+	var y0 = vp.y - h - 70.0 * e
+	lienzo.draw_rect(Rect2(x0, y0, w, h), Color(NEGRO.r, NEGRO.g, NEGRO.b, 0.9 * a))
+	lienzo.draw_rect(Rect2(x0, y0, w, h), Color(ORO.r, ORO.g, ORO.b, a), false, 2.0)
+	var kw = _tecla(fuente, tecla_txt, x0 + 22.0 * e, y0 + (h - tam * 1.9) / 2.0, tam, a)
+	var tx = x0 + 22.0 * e + kw + 18.0 * e
+	lienzo.draw_string(fuente, Vector2(tx, y0 + h * 0.43), linea1, HORIZONTAL_ALIGNMENT_LEFT, -1, t1, Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, a))
+	lienzo.draw_string(fuente, Vector2(tx, y0 + h * 0.75), linea2, HORIZONTAL_ALIGNMENT_LEFT, -1, t2, Color(HUESO.r, HUESO.g, HUESO.b, a))
