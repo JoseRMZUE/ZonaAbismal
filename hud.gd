@@ -679,12 +679,12 @@ func _pantalla_inicio(vp, fuente, pausa = false):
 		var wo = fuente.get_string_size("o", HORIZONTAL_ALIGNMENT_LEFT, -1, desc).x
 		var wt = fuente.get_string_size(texto_p, HORIZONTAL_ALIGNMENT_LEFT, -1, gran).x
 		var total = wp + 10.0 * e + wo + 10.0 * e + we + 12.0 * e + wt
-		var bx = cx - total / 2.0
-		bx += _tecla(fuente, "P", bx, by, tam, a2) + 10.0 * e
-		lienzo.draw_string(fuente, Vector2(bx, by + base), "o", HORIZONTAL_ALIGNMENT_LEFT, -1, desc, Color(HUESO_SOMBRA.r, HUESO_SOMBRA.g, HUESO_SOMBRA.b, a2))
-		bx += wo + 10.0 * e
-		bx += _tecla(fuente, "ESC", bx, by, tam, a2) + 12.0 * e
-		lienzo.draw_string(fuente, Vector2(bx, by + base), texto_p, HORIZONTAL_ALIGNMENT_LEFT, -1, gran, Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, a2))
+		var px = cx - total / 2.0
+		px += _tecla(fuente, "P", px, by, tam, a2) + 10.0 * e
+		lienzo.draw_string(fuente, Vector2(px, by + base), "o", HORIZONTAL_ALIGNMENT_LEFT, -1, desc, Color(HUESO_SOMBRA.r, HUESO_SOMBRA.g, HUESO_SOMBRA.b, a2))
+		px += wo + 10.0 * e
+		px += _tecla(fuente, "ESC", px, by, tam, a2) + 12.0 * e
+		lienzo.draw_string(fuente, Vector2(px, by + base), texto_p, HORIZONTAL_ALIGNMENT_LEFT, -1, gran, Color(ORO_CLARO.r, ORO_CLARO.g, ORO_CLARO.b, a2))
 		return
 	var texto_e = "para empezar"
 	var ancho_t = fuente.get_string_size(texto_e, HORIZONTAL_ALIGNMENT_LEFT, -1, gran).x
