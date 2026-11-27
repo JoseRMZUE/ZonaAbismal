@@ -6,6 +6,9 @@ extends Node
 @export var danio = 20
 @export var cadencia = 0.3
 @export var tras_parry = false
+# SONIDO: segundos entre apretar el botón y que la espada toque en la animación
+# (si el Personaje tiene "adelanto_golpe", se usa ese valor).
+@export var retraso_impacto = 0.17
 @onready var pj = get_parent()
 
 var origen = Vector3.ZERO
@@ -22,6 +25,8 @@ func _physics_process(delta):
 			print("se acabó el doble daño")
 	if Input.is_action_pressed(tecla) and espera <= 0.001:
 		espera = cadencia
+		# SONIDO: el tajo de la espada suena siempre, le dé o no a algo.
+		Sonido.reproducir(pj, "espada_aire")
 		var golpe = lanzar_rayo()
 		if golpe.is_empty():
 			print("no le dio a nada en ", alcance, " m")
@@ -30,13 +35,20 @@ func _physics_process(delta):
 		print("le dio a ", golpe.collider.name, " a ", d, " m")
 		if golpe.collider.has_method("recibir_golpe"):
 			var danio_final = danio
+			var sonido = "espada_golpe"
 			if tras_parry:
 				danio_final = danio * 2
 				# PARRY: el doble es para UN golpe; después vuelve a lo normal.
 				tras_parry = false
 				reloj_doble = 0.0
 				print("doble daño tras parry: ", danio_final)
+				sonido = "espada_contragolpe"
 			golpe.collider.recibir_golpe(danio_final)
+			# SONIDO: el impacto suena cuando la espada toca en la animación.
+			var retraso = retraso_impacto
+			if "adelanto_golpe" in pj:
+				retraso = pj.adelanto_golpe
+			Sonido.reproducir(pj, sonido, golpe.position, retraso)
 
 
 # PARRY: la llama parry.gd cuando un parry sale bien.

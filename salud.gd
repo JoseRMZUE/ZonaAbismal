@@ -16,5 +16,7 @@ func recibir_golpe(danio):
 	vida = maxi(vida - danio, 0)
 	reloj = invulnerable
 	print("vida del jugador: ", vida)
+	# SONIDO: el golpe que de verdad le quita vida (no el invulnerable ni el parry).
+	Sonido.reproducir(get_parent(), "golpe_recibido")
 	if vida == 0:
 		print("el jugador perdió")
