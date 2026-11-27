@@ -7,6 +7,7 @@ extends Node
 
 @export var color_aviso = Color(1.0, 0.15, 0.1)   # rojo: "va a pegar"
 @export var color_golpe = Color(1.0, 1.0, 1.0)    # blanco: "le dieron"
+@export var color_parry = Color(1.0, 0.85, 0.35)  # dorado: "le desviaron el golpe"
 @export var k_apagado = 10.0                      # qué tan rápido se apaga
 
 var material = null

@@ -65,8 +65,18 @@ func esta_activa():
 
 # PARRY: un enemigo avisa que su golpe fue desviado. Prende el doble daño en
 # apuntar.gd (antes era una casilla manual del Inspector) mientras dure el aturdido.
-func exito(segundos):
+# enemigo_pos (opcional): dónde está el enemigo, para que el destello salga
+# a mitad de camino entre los dos, donde chocan las armas.
+func exito(segundos, enemigo_pos = null):
 	print("parry exitoso: doble daño por ", segundos, " s")
+	# DESTELLO + SONIDO: el choque del parry.
+	var punto = pj.global_position + Vector3(0, 1.1, 0)
+	if enemigo_pos != null:
+		punto = punto.lerp(enemigo_pos + Vector3(0, 1.1, 0), 0.5)
+	else:
+		punto -= pj.global_basis.z * 0.7    # sin enemigo: delante del jugador
+	Sonido.reproducir(pj, "parry", punto)
+	Chispas.parry(pj, punto)
 	var apuntar = pj.get_node_or_null("Apuntar")
 	if apuntar != null and apuntar.has_method("activar_doble"):
 		apuntar.activar_doble(segundos)
