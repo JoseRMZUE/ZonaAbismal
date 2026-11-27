@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-enum Estado { PATRULLAR, ESPERAR, PERSEGUIR, ATACAR, BUSCAR, ATURDIDO, MUERTO }
+enum Estado { PATRULLAR, ESPERAR, RUGIR, PERSEGUIR, ATACAR, BUSCAR, ATURDIDO, MUERTO }   # SONIDO: RUGIR
 
 @export var rapidez = 2.0
 # PARASITE: al perseguir corre (animación run), un poco más rápido.
@@ -29,6 +29,13 @@ enum Estado { PATRULLAR, ESPERAR, PERSEGUIR, ATACAR, BUSCAR, ATURDIDO, MUERTO }
 @export var tiempo_aturdido = 1.5
 # MUERTE: segundos que el cuerpo queda en el piso después de la animación.
 @export var espera_cuerpo = 1.0
+# RUGIDO: cuánto ruge al descubrir al jugador, antes de salir corriendo tras él.
+@export var tiempo_rugido = 1.6
+# RUGIDO: segundos que espera el sonido desde que arranca la animación de rugir.
+@export var retraso_rugido = 0.0
+# SONIDO: el archivo de ataque trae el golpe a 0.30 s de su inicio; arranca así
+# de antes del impacto para que suene a la vez que llega el golpe.
+@export var adelanto_sonido = 0.3
 # Desplazamientos desde donde se colocó el NPC, no posiciones absolutas.
 @export var ruta: Array[Vector3] = [Vector3.ZERO, Vector3(4, 0, 0)]
 
@@ -43,6 +50,8 @@ var espera_golpe = 0.0
 var golpe_en_curso = false
 var tiempo_golpe = 0.0
 var aturdido_restante = 0.0   # PARRY
+var rugio = false             # RUGIDO: ya rugió en esta persecución
+var sonido_ataque = false     # SONIDO: el sonido de este golpe ya sonó
 var muerto = false            # MUERTE: la Partida lo lee para no revivirlo
 # PARASITE: el AnimationPlayer está dentro de Modelo > Idle.
 @onready var anim = $"Modelo/Idle/AnimationPlayer"
@@ -81,7 +90,15 @@ func _physics_process(delta):
 		estado = nuevo
 		print(name, " -> ", Estado.keys()[estado], " cuadro ",
 			Engine.get_physics_frames(), " a ", snappedf(d, 0.01), " m")
-		if estado == Estado.ATACAR:
+		# RUGIDO: si vuelve a patrullar, la próxima vez que lo vea ruge otra vez.
+		if estado == Estado.PATRULLAR or estado == Estado.ESPERAR:
+			rugio = false
+		if estado == Estado.RUGIR:
+			reloj = tiempo_rugido
+			rugio = true
+			# SONIDO: el grito arranca un poco después que la animación.
+			Sonido.reproducir(self, "rugido_hermano", null, retraso_rugido)
+		elif estado == Estado.ATACAR:
 			# El primer golpe arranca de una: su preparación ya es el aviso.
 			espera_golpe = 0.0
 			golpe_en_curso = false
@@ -96,6 +113,14 @@ func _physics_process(delta):
 			patrullar()
 		Estado.ESPERAR:
 			frenar()
+		Estado.RUGIR:   # RUGIDO
+			velocity.x = 0.0
+			velocity.z = 0.0
+			mirar_a(jugador.global_position)
+			if anim.has_animation("hermano/rugido"):
+				anim.play("hermano/rugido", mezcla)
+			else:
+				anim.play("hermano/idle", mezcla)   # aún sin animación de rugir
 		Estado.PERSEGUIR:
 			ir_a(jugador.global_position, "hermano/run", rapidez_correr)
 		Estado.ATACAR:
@@ -134,9 +159,15 @@ func decidir(d, ve):
 		return Estado.MUERTO
 	if aturdido_restante > 0.001:
 		return Estado.ATURDIDO
-	var alerta = estado == Estado.PERSEGUIR or estado == Estado.ATACAR
+	# RUGIDO: mientras ruge no hace otra cosa (salvo morir o quedar aturdido).
+	if estado == Estado.RUGIR and reloj > 0.001:
+		return Estado.RUGIR
+	var alerta = estado == Estado.PERSEGUIR or estado == Estado.ATACAR or estado == Estado.RUGIR
 	# Ya alerta, necesita más distancia para soltarlo: histéresis.
 	var limite = rango_perder if alerta else rango_vision
+	# RUGIDO: la primera vez que lo ve, ruge antes de perseguirlo.
+	if ve and d <= limite and not rugio:
+		return Estado.RUGIR
 	if ve and d <= rango_ataque:
 		return Estado.ATACAR
 	if ve and d <= limite:
@@ -227,12 +258,17 @@ func atacar(delta):
 	espera_golpe = maxf(espera_golpe - delta, 0.0)
 	if not golpe_en_curso and espera_golpe <= 0.001:
 		golpe_en_curso = true
+		sonido_ataque = false
 		tiempo_golpe = 0.0
 		espera_golpe = cadencia_golpe
 		anim.play("hermano/ataque", mezcla)
 		anim.seek(impacto - aviso_golpe, true)
 	if golpe_en_curso:
 		tiempo_golpe += delta
+		# SONIDO: el ataque suena justo antes de que llegue el golpe.
+		if not sonido_ataque and tiempo_golpe >= aviso_golpe - adelanto_sonido:
+			sonido_ataque = true
+			Sonido.reproducir(self, "ataque_hermano")
 		# DESTELLO: brilla en rojo mientras prepara el golpe (el aviso).
 		if efectos != null:
 			efectos.mantener(efectos.color_aviso)
@@ -259,7 +295,10 @@ func golpear():
 		# PARRY: igual que el Verdugo: queda aturdido y el jugador gana el doble daño.
 		print(name, " golpe desviado por el parry")
 		aturdido_restante = tiempo_aturdido
-		parry.exito(tiempo_aturdido)
+		parry.exito(tiempo_aturdido, global_position)
+		# DESTELLO: brilla dorado cuando le desvían el golpe.
+		if efectos != null:
+			efectos.destello(efectos.color_parry)
 		return
 	var salud = jugador.get_node_or_null("Salud")
 	if salud != null:
