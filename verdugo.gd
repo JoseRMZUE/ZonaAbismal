@@ -4,7 +4,7 @@ extends CharacterBody3D
 # golpe emite esta señal y SistemaEventos (Sala B) hace el destello de luz.
 signal evento(posicion: Vector3)
 
-enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA, HUIR, ATURDIDO, MUERTO }   # PARRY: ATURDIDO · MUERTE: MUERTO
+enum Estado { ACERCARSE, RUGIR, AVISO, GOLPE, RECARGA, HUIR, ATURDIDO, MUERTO }   # PARRY: ATURDIDO · MUERTE: MUERTO · SONIDO: RUGIR
 
 @export var rapidez = 2.0
 @export var rango_ataque = 1.0
@@ -25,12 +25,28 @@ enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA, HUIR, ATURDIDO, MUERTO }   # PAR
 @export var tiempo_aturdido = 1.5
 # MUERTE: segundos que el cuerpo queda en el piso después de la animación.
 @export var espera_cuerpo = 1.0
+# RUGIDO: a qué distancia (m) lo ve, si no hay una pared en medio. Ya alerta,
+# lo sigue viendo hasta 1.5 veces esa distancia (histéresis, como el Hermano).
+@export var rango_vision = 12.0
+# RUGIDO: cuánto dura el rugido antes de ir por el jugador (el aviso para él).
+@export var tiempo_rugido = 2.6
+# RUGIDO: segundos que espera el sonido desde que arranca la animación, para
+# que el grito caiga cuando abre la boca (se ajusta mirando el juego).
+@export var retraso_rugido = 0.5
+# RUGIDO: si lo pierde de vista este tiempo, la próxima vez vuelve a rugir.
+@export var tiempo_olvido = 4.0
+# SONIDO: el archivo de ataque trae el golpe a 0.30 s de su inicio; arranca así
+# de antes del impacto para que suene a la vez que llega la mano.
+@export var adelanto_sonido = 0.3
 
 var estado = Estado.ACERCARSE
 var reloj = 0.0
 var jugador = null
 var parado = false            # PARRY: el último golpe fue desviado
 var muerto = false            # MUERTE: la Partida lo lee para no revivirlo
+var alerta = false            # RUGIDO: ya rugió y sigue pendiente del jugador
+var sin_ver = 0.0             # RUGIDO: cuánto lleva sin verlo
+var sonido_ataque = false     # SONIDO: el sonido de este golpe ya sonó
 # MUTANTE: el AnimationPlayer está dentro de Modelo > Mutant Idle.
 @onready var anim = $"Modelo/Mutant Idle/AnimationPlayer"
 # DESTELLO: el nodo hijo con control_efectos.gd (si no está, no pasa nada).
@@ -56,10 +72,14 @@ func _physics_process(delta):
 
 	velocity += get_gravity() * delta
 	# Una pared corta su visión: se detiene y no avanza el ciclo de ataque.
-	if not muerto and not _hay_linea_de_vision():
+	if not muerto and not _lo_ve():
 		velocity.x = 0.0
 		velocity.z = 0.0
-		if estado == Estado.AVISO or estado == Estado.GOLPE:
+		# RUGIDO: si lo pierde mucho tiempo, olvida que estaba alerta.
+		sin_ver += delta
+		if sin_ver >= tiempo_olvido:
+			alerta = false
+		if estado == Estado.RUGIR or estado == Estado.AVISO or estado == Estado.GOLPE:
 			estado = Estado.ACERCARSE
 			reloj = 0.0
 			parado = false
@@ -68,6 +88,7 @@ func _physics_process(delta):
 		move_and_slide()
 		return
 
+	sin_ver = 0.0
 	reloj = maxf(reloj - delta, 0.0)
 	var nuevo = decidir()
 	if nuevo != estado:
@@ -76,9 +97,17 @@ func _physics_process(delta):
 	match estado:
 		Estado.ACERCARSE:
 			ir_a(jugador.global_position, "verdugo/walk")
+		Estado.RUGIR:   # RUGIDO
+			# Se planta, mira al jugador y ruge (el sonido lo arranca cambiar_a).
+			mirar_jugador()
+			frenar("verdugo/roaringaviso")
 		Estado.AVISO:
 			# El brazo ya viene bajando (lo arranca cambiar_a).
 			frenar("verdugo/ataque")
+			# SONIDO: el ataque suena justo antes de que llegue la mano.
+			if not sonido_ataque and reloj <= adelanto_sonido:
+				sonido_ataque = true
+				Sonido.reproducir(self, "ataque_verdugo")
 			# DESTELLO: brilla en rojo todo el aviso (0.3 s del concepto).
 			if efectos != null:
 				efectos.mantener(efectos.color_aviso)
@@ -120,10 +149,16 @@ func decidir():
 		return Estado.HUIR
 	match estado:
 		Estado.ACERCARSE:
+			# RUGIDO: la primera vez que lo ve, ruge antes de ir por él.
+			if not alerta:
+				return Estado.RUGIR
 			# Cerca en el piso Y en el mismo nivel: si está en otra
 			# plataforma, no empieza a atacar.
 			if distancia() <= rango_ataque and altura() <= alto_golpe:
 				return Estado.AVISO
+		Estado.RUGIR:   # RUGIDO
+			if reloj <= 0.001:
+				return Estado.ACERCARSE
 		Estado.AVISO:
 			if reloj <= 0.001:
 				return Estado.GOLPE
@@ -150,8 +185,15 @@ func cambiar_a(nuevo):
 	print(name, " -> ", Estado.keys()[estado], " cuadro ",
 		Engine.get_physics_frames(), " a ",
 		snappedf(distancia(), 0.01), " m")
-	if estado == Estado.AVISO:
+	if estado == Estado.RUGIR:   # RUGIDO
+		reloj = tiempo_rugido
+		alerta = true
+		anim.play("verdugo/roaringaviso", mezcla)
+		# SONIDO: el grito arranca un poco después que la animación.
+		Sonido.reproducir(self, "rugido_verdugo", null, retraso_rugido)
+	elif estado == Estado.AVISO:
 		reloj = tiempo_aviso
+		sonido_ataque = false
 		# MUTANTE: arranca el ataque con el brazo ya atrás, para que la mano
 		# llegue (impacto) justo cuando termine el aviso y empiece GOLPE.
 		anim.play("verdugo/ataque", mezcla)
@@ -186,7 +228,10 @@ func golpear():
 	if parry != null and parry.has_method("esta_activa") and parry.esta_activa():
 		print(name, " golpe desviado por el parry")
 		parado = true
-		parry.exito(tiempo_aturdido)
+		parry.exito(tiempo_aturdido, global_position)
+		# DESTELLO: el Verdugo brilla dorado cuando le desvían el golpe.
+		if efectos != null:
+			efectos.destello(efectos.color_parry)
 		return
 	var salud = jugador.get_node_or_null("Salud")
 	if salud != null:
@@ -225,6 +270,14 @@ func ir_a(destino, animacion):
 	anim.play(animacion, mezcla)
 
 
+# RUGIDO: gira (solo en el piso) hacia donde está el jugador.
+func mirar_jugador():
+	var hacia = jugador.global_position - global_position
+	hacia.y = 0.0
+	if hacia.length() > 0.05:
+		basis = Basis.looking_at(hacia.normalized())
+
+
 func frenar(animacion):
 	velocity.x = 0.0
 	velocity.z = 0.0
@@ -241,6 +294,14 @@ func distancia():
 # Diferencia de altura (los dos tienen el origen en los pies).
 func altura():
 	return absf(jugador.global_position.y - global_position.y)
+
+
+# RUGIDO: lo "ve" si está lo bastante cerca Y no hay una pared en medio.
+func _lo_ve() -> bool:
+	var limite = rango_vision
+	if alerta:
+		limite = rango_vision * 1.5
+	return distancia() <= limite and _hay_linea_de_vision()
 
 
 func _hay_linea_de_vision() -> bool:
